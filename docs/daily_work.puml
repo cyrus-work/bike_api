@@ -1,0 +1,33 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+APP -> Server: Login Request
+
+APP -> Server: Send workout
+note over Server
+    router: /workout/create
+    bike_id
+    point type
+end note
+APP <- Server: Response (workout id)
+note over APP
+    save workout id
+end note
+loop workout status
+    APP -> Server: Send workout status
+    note over APP
+        router: /workout/keep
+        wid
+        bike_serial
+        energy
+        calorie
+    end note
+    note over Server
+        update workout status: energy, calorie
+    end note
+    APP <- Server: Send workout Response (workout id)
+end
+
+@enduml

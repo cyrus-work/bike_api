@@ -1,19 +1,22 @@
 import traceback
 
-from fastapi import APIRouter
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, Depends
 
+from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
+from internal.utils import model_to_dict
 from messages.agency import AgencyCreateRequest, AgencyInfo, AgencyManagementFailMsg
-from models.agency import make_agency, get_agency_by_email
+from models.agency import make_agency, get_agency_by_owner_id
 from models.user import get_user_by_email
 
 router = APIRouter()
 
+
 @router.get("/")
 async def get_agency_api():
     return {"message": "agency api"}
+
 
 @router.post("/create",
              responses={
@@ -60,5 +63,45 @@ async def post_create_agency_api(agency: AgencyCreateRequest):
 
     finally:
         logger.info(f"post_create_agency_api end")
+        if db:
+            db.close()
+
+
+@router.post('/get_own')
+async def get_agency_by_owner_api(token: str = Depends(oauth2_scheme)):
+    """
+    Get agency by owner email
+
+    :param token:
+    :return:
+    """
+    logger.info(f"get_agency_by_owner_api start")
+    db = None
+
+    try:
+        db = SessionLocal()
+
+        email = get_email_from_jwt(token)
+
+        db_user = get_user_by_email(db, email)
+
+        db_agency = get_agency_by_owner_id(db, db_user.uid)
+        if db_agency is None:
+            msg = {"code": 463, "content": "Agency not found."}
+            logger.error(f"get_agency_by_owner_api: {msg}")
+            return AgencyManagementFailMsg(**msg)
+        logger.info(f"get_agency_by_owner_api: {db_agency}")
+
+        return [AgencyInfo(**model_to_dict(agency)) for agency in db_agency]
+
+
+    except Exception as _:
+        logger.error(f"get_agency_by_owner_api error: {traceback.format_exc()}")
+        msg = {"code": 461, "content": "Get agency failed."}
+        logger.error(f"get_agency_by_owner_api: {msg}")
+        return AgencyManagementFailMsg(**msg)
+
+    finally:
+        logger.info(f"get_agency_by_owner_api end")
         if db:
             db.close()

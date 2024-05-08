@@ -42,3 +42,11 @@ def get_bike_by_bid(db: SessionLocal, bid: str) -> Bike:
 
 def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
     return db.query(Bike).filter_by(bike_no=bike_no).first()
+
+
+def get_bikes_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list[Bike]:
+    return db.query(Bike).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
+
+
+def get_bikes_by_agency_id(db: SessionLocal, agency_id: str, offset: int = 0, limit: int = 50) -> list[Bike]:
+    return db.query(Bike).filter_by(agency_id=agency_id).offset(offset).limit(limit).all()

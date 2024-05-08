@@ -7,6 +7,7 @@ from functools import wraps
 
 from fastapi import HTTPException
 from passlib.context import CryptContext
+from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 
 from internal.app_config import platform_env
@@ -71,6 +72,7 @@ def send_mail(mailer, uid, checker):
 
     auth_email_send(mailer, uid, title, auth_body)
 
+
 def auth_email_send(mailer, receiver, title, content):
     logger.info('>>> auth_email_send start')
     logger.info(f'receiver: {receiver}')
@@ -93,3 +95,9 @@ def auth_email_send(mailer, receiver, title, content):
 
     s.send_message(msg)
     s.quit()
+
+
+def model_to_dict(model):
+    """모델 인스턴스를 딕셔너리로 변환합니다."""
+    return {c.key: getattr(model, c.key)
+            for c in inspect(model).mapper.column_attrs}

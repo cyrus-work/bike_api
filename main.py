@@ -8,14 +8,14 @@ from routers.v1.user import router as v1_user_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.wallets import router as v1_wallet_router
-from routers.v1.daily_production import router as v1_daily_production_router
+from routers.v1.workout import router as v1_workout_router
 
 # from models import user
 from models import wallet
 from models import agency
 from models import bike
 from models import bike_management
-from models import daily_prodution
+from models import workout
 # from models import transaction_history
 # from models import user_check
 
@@ -39,7 +39,7 @@ app.include_router(v1_user_router, prefix="/user", tags=["users"])
 app.include_router(v1_bike_router, prefix="/bike", tags=["bike"])
 app.include_router(v1_agency_router, prefix="/agency", tags=["agency"])
 app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
-app.include_router(v1_daily_production_router, prefix="/daily", tags=["daily_production"])
+app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 
 @app.get("/")
 async def root():

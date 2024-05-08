@@ -1,11 +1,15 @@
-from fastapi import APIRouter
-
 import traceback
 
+from fastapi import APIRouter, Depends
+from sqlalchemy.exc import IntegrityError
+from fastapi.responses import JSONResponse
+
+from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
-from messages.wallets import WalletMsg, WalletFailMsg, WalletInfo, WalletCreateMsg
-from models.wallet import make_wallet, Wallet, get_wallets
+from messages.wallets import WalletMsg, WalletFailMsg, WalletInfo
+from models.user import get_user_by_email
+from models.wallet import make_wallet, get_wallets, get_wallet_by_owner_id
 
 router = APIRouter()
 
@@ -39,6 +43,13 @@ async def post_wallets_create_api(wallet: WalletMsg):
         logger.info(f">>> post_wallets_create_api: {db_wallet}")
         return db_wallet
 
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f">>> post_wallets_create_api error: {traceback.format_exc()}")
+        msg = {"code": 461, "content": f"{e}"}
+        logger.error(f">>> post_wallets_create_api: {msg}")
+        return JSONResponse(status_code=461, content=msg)
+
     except Exception as _:
         logger.error(f">>> post_wallets_create_api: {traceback.format_exc()}")
         msg = {"code": 461, "content": "Create wallet failed."}
@@ -51,7 +62,7 @@ async def post_wallets_create_api(wallet: WalletMsg):
             db.close()
 
 
-@router.get('/get_wallets')
+@router.get('/get')
 async def get_wallets_api():
     """
     Get all wallets
@@ -66,14 +77,60 @@ async def get_wallets_api():
         wallets = get_wallets(db)
         logger.info(f"get_wallets_api: {wallets}")
         return wallets
-    except Exception as e:
+
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"get_wallets_api error: {traceback.format_exc()}")
+        msg = {"code": 461, "content": "{e}"}
         logger.error(f"get_wallets_api: {e}")
-        return WalletFailMsg(
-            error_code=500,
-            error_message="Internal Server Error",
-            error_detail=str(e),
-        )
+        return WalletFailMsg(**msg)
+
+    except Exception as _:
+        logger.error(f"get_wallets_api: {traceback.format_exc()}")
+        msg = {"code": 461, "content": "Get wallets failed."}
+        logger.error(f"get_wallets_api: {msg}")
+        return WalletFailMsg(**msg)
+
     finally:
         logger.info(f">>> get_wallets_api end")
+        if db:
+            db.close()
+
+@router.post("/get_own")
+async def get_wallets_own_api(token: str = Depends(oauth2_scheme)):
+    """
+    Get wallet by owner_id
+
+    :return:
+    """
+    logger.info(f">>> get_wallets_own_api start:")
+    db = None
+
+    try:
+        db = SessionLocal()
+
+        email = get_email_from_jwt(token)
+        db_user = get_user_by_email(db, email)
+        owner_id = db_user.uid
+
+        wallets = get_wallet_by_owner_id(db, owner_id=owner_id)
+        logger.info(f"get_wallets_own_api: {wallets}")
+        return wallets
+
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"get_wallets_own_api error: {traceback.format_exc()}")
+        msg = {"code": 461, "content": "{e}"}
+        logger.error(f"get_wallets_own_api: {e}")
+        return WalletFailMsg(**msg)
+
+    except Exception as _:
+        logger.error(f"get_wallets_own_api: {traceback.format_exc()}")
+        msg = {"code": 461, "content": "Get wallets failed."}
+        logger.error(f"get_wallets_own_api: {msg}")
+        return WalletFailMsg(**msg)
+
+    finally:
+        logger.info(f">>> get_wallets_own_api end")
         if db:
             db.close()
