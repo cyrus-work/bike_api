@@ -1,4 +1,5 @@
 import json
+import traceback
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -75,14 +76,10 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def get_email_from_jwt(token: str):
-    try:
-        payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
-        email: str = payload.get("email")
-        logger.info(f"get_email_from_jwt: {email}")
-        return email
-    except ExpiredSignatureError as _:
-        logger.error(f"get_email_from_jwt: {e}")
-        raise ExpiredSignatureError
+    payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
+    email: str = payload.get("email")
+    logger.info(f"get_email_from_jwt: {email}")
+    return email
 
 
 def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authorization")):

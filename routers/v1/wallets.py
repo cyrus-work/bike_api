@@ -50,12 +50,6 @@ async def post_wallets_create_api(wallet: WalletMsg):
         logger.error(f">>> post_wallets_create_api: {msg}")
         return JSONResponse(status_code=461, content=msg)
 
-    except Exception as _:
-        logger.error(f">>> post_wallets_create_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Create wallet failed."}
-        logger.error(f">>> post_wallets_create_api: {msg}")
-        return WalletFailMsg(**msg)
-
     finally:
         logger.info(f">>> post_wallets_create_api end <<<")
         if db:
@@ -83,12 +77,6 @@ async def get_wallets_api():
         logger.error(f"get_wallets_api error: {traceback.format_exc()}")
         msg = {"code": 461, "content": "{e}"}
         logger.error(f"get_wallets_api: {e}")
-        return WalletFailMsg(**msg)
-
-    except Exception as _:
-        logger.error(f"get_wallets_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Get wallets failed."}
-        logger.error(f"get_wallets_api: {msg}")
         return WalletFailMsg(**msg)
 
     finally:
@@ -122,12 +110,6 @@ async def get_wallets_own_api(token: str = Depends(oauth2_scheme)):
         logger.error(f"get_wallets_own_api error: {traceback.format_exc()}")
         msg = {"code": 461, "content": "{e}"}
         logger.error(f"get_wallets_own_api: {e}")
-        return WalletFailMsg(**msg)
-
-    except Exception as _:
-        logger.error(f"get_wallets_own_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Get wallets failed."}
-        logger.error(f"get_wallets_own_api: {msg}")
         return WalletFailMsg(**msg)
 
     finally:

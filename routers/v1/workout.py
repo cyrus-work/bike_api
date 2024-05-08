@@ -4,14 +4,18 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from jwt import ExpiredSignatureError
 
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
 from messages.workout import WorkoutCreateRequest, WorkoutKeepRequest, WorkoutCreateMsg, WorkoutGetRequest
 from models.bike import get_bike_by_bike_no
+from models.last_workout import get_last_workout_by_owner_id
 from models.user import get_user_by_email
-from models.workout import get_workout_by_owner_id, make_workout, get_workout_by_did, get_workout_by_date
+from models.workout import get_workout_by_owner_id, make_workout, get_workout_by_wid, get_workout_by_date, \
+    get_workout_by_date_and_owner_id
+from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
 router = APIRouter()
 
@@ -29,11 +33,11 @@ async def post_workout_create_api(daily: WorkoutCreateRequest, token: str = Depe
     logger.info(f"post_workout_create_api start: {daily}")
     db = None
 
-    email = get_email_from_jwt(token)
-    bike_serial = daily.bike_serial
-    point_type = daily.ptype
-
     try:
+        email = get_email_from_jwt(token)
+        bike_serial = daily.bike_serial
+        point_type = daily.ptype
+
         db = SessionLocal()
 
         # 로그인한 사용자의 정보를 가져온다.
@@ -58,13 +62,7 @@ async def post_workout_create_api(daily: WorkoutCreateRequest, token: str = Depe
         db.merge(db_daily)
         db.commit()
 
-        return WorkoutCreateMsg(workout_id=db_daily.did)
-
-    except Exception as _:
-        logger.error(f"post_workout_create_api error: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Register failed."}
-        logger.error(f"post_workout_create_api: {msg}")
-        return JSONResponse(status_code=410, content=msg)
+        return WorkoutCreateMsg(workout_id=db_daily.wid)
 
     finally:
         logger.info(f"post_workout_create_api end")
@@ -88,12 +86,8 @@ async def post_workout_keep_api(daily: WorkoutKeepRequest, token: str = Depends(
         db = SessionLocal()
 
         db_user = get_user_by_email(db, email)
-        if db_user is None:
-            msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_workout_keep_api: {msg}")
-            return JSONResponse(status_code=410, content=msg)
 
-        db_workout = get_workout_by_did(db, did=wid)
+        db_workout = get_last_workout_by_owner_id(db, db_user.uid)
         if db_workout is None:
             logger.info(f"post_workout_keep_api: make_daily_production")
             msg = {"code": 462, "content": "workout date not found."}
@@ -102,7 +96,7 @@ async def post_workout_keep_api(daily: WorkoutKeepRequest, token: str = Depends(
         logger.info(f"post_workout_keep_api db_workout: {db_workout}")
 
         if wid != db_workout.wid:
-            msg = {"code": 462, "content": "workout date not match bike serial."}
+            msg = {"code": 462, "content": "workout date not match workout id."}
             logger.error(f"post_workout_keep_api: {msg}")
             return JSONResponse(status_code=410, content=msg)
 
@@ -120,12 +114,6 @@ async def post_workout_keep_api(daily: WorkoutKeepRequest, token: str = Depends(
 
         return {"message": "update success"}
 
-    except Exception as _:
-        logger.error(f"post_workout_keep_api error: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Register failed."}
-        logger.error(f"post_workout_keep_api: {msg}")
-        return JSONResponse(status_code=410, content=msg)
-
     finally:
         logger.info(f"post_workout_keep_api end")
         if db:
@@ -139,16 +127,11 @@ async def post_get_workout_api(daily: WorkoutGetRequest, token: str = Depends(oa
 
     try:
         email = get_email_from_jwt(token)
-
         date = daily.date
 
         db = SessionLocal()
 
         db_user = get_user_by_email(db, email)
-        if db_user is None:
-            msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_get_workout_api: {msg}")
-            return JSONResponse(status_code=410, content=msg)
 
         if date is not None:
             db_workout = get_workout_by_date(db, db_user.uid, date)
@@ -158,13 +141,52 @@ async def post_get_workout_api(daily: WorkoutGetRequest, token: str = Depends(oa
         logger.info(f"post_get_workout_api: {db_workout}")
         return db_workout
 
-    except Exception as _:
-        logger.error(f"post_get_workout_api error: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Register failed."}
-        logger.error(f"post_get_workout_api: {msg}")
-        return JSONResponse(status_code=410, content=msg)
-
     finally:
         logger.info(f"post_get_workout_api end")
+        if db:
+            db.close()
+
+
+@router.get("/get_workout_duration")
+async def get_workout_duration_api(token: str = Depends(oauth2_scheme)):
+    logger.info(f"get_workout_duration_api start")
+    db = None
+
+    try:
+        email = get_email_from_jwt(token)
+
+        db = SessionLocal()
+
+        db_user = get_user_by_email(db, email)
+
+        db_workout = get_workout_duration_sum_by_owner_id_and_date(db, db_user.uid)
+        logger.info(f"get_workout_duration_api: {db_workout}")
+        return db_workout
+
+    finally:
+        logger.info(f"get_workout_duration_api end")
+        if db:
+            db.close()
+
+
+@router.get("/get_workout_by_date_and_owner_id")
+async def get_workout_by_date_and_owner_id_api(token: str = Depends(oauth2_scheme)):
+    logger.info(f"get_workout_by_date_and_owner_id_api start")
+    db = None
+
+    try:
+        email = get_email_from_jwt(token)
+
+        db = SessionLocal()
+
+        db_user = get_user_by_email(db, email)
+        owner_id = db_user.uid
+
+        db_workout = get_workout_by_date_and_owner_id(db, owner_id)
+        logger.info(f"get_workout_by_date_and_owner_id_api: {db_workout}")
+        return db_workout
+
+    finally:
+        logger.info(f"get_workout_by_date_and_owner_id_api end")
         if db:
             db.close()

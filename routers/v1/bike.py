@@ -56,12 +56,6 @@ async def post_create_bike_api(bike: BikeCreateRequest):
         db.refresh(db_bike)
         return db_bike
 
-    except Exception as e:
-        logger.error(f"post_create_bike_api error: {e}")
-        msg = {"code": 461, "content": "Create bike failed."}
-        logger.error(f"post_create_bike_api: {msg}")
-        return BikeManagementFailMsg(**msg)
-
     finally:
         logger.info(f"post_create_bike_api end")
         if db:
@@ -88,12 +82,6 @@ async def get_bikes_own_api(token: str = Depends(oauth2_scheme)):
         db_bikes = get_bikes_by_owner_id(db, db_user.uid)
         logger.info(f"get_bikes_own_api: {db_bikes}")
         return db_bikes
-
-    except Exception as e:
-        logger.error(f"get_bikes_own_api error: {e}")
-        msg = {"code": 461, "content": "Get bikes failed."}
-        logger.error(f"get_bikes_own_api: {msg}")
-        return BikeManagementFailMsg(**msg)
 
     finally:
         logger.info(f"get_bikes_own_api end")
@@ -130,12 +118,6 @@ async def get_bikes_agency_api(token: str = Depends(oauth2_scheme)):
 
         logger.info(f"get_bikes_agency_api: {db_bikes_list}")
         return db_bikes_list
-
-    except Exception as e:
-        logger.error(f"get_bikes_agency_api error: {e}")
-        msg = {"code": 461, "content": "Get bikes failed."}
-        logger.error(f"get_bikes_agency_api: {msg}")
-        return BikeManagementFailMsg(**msg)
 
     finally:
         logger.info(f"get_bikes_agency_api end")

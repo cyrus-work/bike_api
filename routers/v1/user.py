@@ -77,12 +77,6 @@ async def post_login_user_api(request: Request, user: UserLoginRequest):
         logger.info(f"post_login_user_api: {msg}")
         return AccessRefreshTokenMsg(**token_msg)
 
-    except Exception as _:
-        logger.error(f"post_login_user_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Login failed."}
-        logger.error(f"post_login_user_api: {msg}")
-        return LoginFailMsg(**msg)
-
     finally:
         logger.info(f"post_login_user_api end")
         if db:
@@ -145,13 +139,6 @@ async def post_create_user_api(user: UserCreateRequest):
         logger.error(f"post_create_user_api - msg: {msg}")
         return JSONResponse(status_code=701, content=msg)
 
-    except Exception as _:
-        db.rollback()
-        logger.error(f"post_create_user_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": " User create fail"}
-        logger.error(f"post_create_user_api - msg: {msg}")
-        return JSONResponse(status_code=461, content=msg)
-
     finally:
         logger.info(f"post_create_user_api end")
         if db:
@@ -200,12 +187,6 @@ async def resend_user_api(data: UserEmailRequest):
         db.commit()
         logger.info(f"resend_user_api - db_check: {email_str}, {checker}")
         return UserResendMsg(code=200, content="Resend email", email=email_str)
-
-    except Exception as _:
-        logger.error(f"resend_user_api: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Resend fail"}
-        logger.error(f"resend_user_api - msg: {msg}")
-        return UserResendFailMsg(**msg)
 
     finally:
         if db:
@@ -261,14 +242,6 @@ async def email_confirm_user_api(email: str, checker: str):
             msg = {"code": 464, "content": "Invalid checker"}
             logger.error(f"email_confirm_user_api - msg: {msg}")
             return HTMLResponse(content=html_ng_content, status_code=464)
-
-    except Exception as _:
-        # 에러 발생시 db 롤백진행.
-        db.rollback()
-        logger.error(traceback.format_exc())
-        msg = {"code": 461, "content": "Email confirm fail"}
-        logger.error(f"email_confirm_user_api - msg: {msg}")
-        return HTMLResponse(content=html_ng_content, status_code=461)
 
     finally:
         if db:

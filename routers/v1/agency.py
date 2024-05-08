@@ -55,12 +55,6 @@ async def post_create_agency_api(agency: AgencyCreateRequest):
         db.refresh(db_agency)
         return AgencyInfo(**db_agency.__dict__)
 
-    except Exception as _:
-        logger.error(f"post_create_agency_api error: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Create agency failed."}
-        logger.error(f"post_create_agency_api: {msg}")
-        return AgencyManagementFailMsg(**msg)
-
     finally:
         logger.info(f"post_create_agency_api end")
         if db:
@@ -93,13 +87,6 @@ async def get_agency_by_owner_api(token: str = Depends(oauth2_scheme)):
         logger.info(f"get_agency_by_owner_api: {db_agency}")
 
         return [AgencyInfo(**model_to_dict(agency)) for agency in db_agency]
-
-
-    except Exception as _:
-        logger.error(f"get_agency_by_owner_api error: {traceback.format_exc()}")
-        msg = {"code": 461, "content": "Get agency failed."}
-        logger.error(f"get_agency_by_owner_api: {msg}")
-        return AgencyManagementFailMsg(**msg)
 
     finally:
         logger.info(f"get_agency_by_owner_api end")

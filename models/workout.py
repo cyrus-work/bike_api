@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Date, DECIMAL
 
+from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
 from internal.utils import generate_hash
 
@@ -9,7 +10,7 @@ from internal.utils import generate_hash
 class DailyWorkout(Base):
     __tablename__ = 'workout'
 
-    did = Column(String(64, collation="latin1_swedish_ci"), primary_key=True, index=True)
+    wid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True, index=True)
     owner_id = Column(String(64, collation="latin1_swedish_ci"), ForeignKey("users.uid", ondelete="CASCADE"),
                       index=True)
     bid = Column(String(64, collation="latin1_swedish_ci"), ForeignKey("bike.bid"))
@@ -23,45 +24,119 @@ class DailyWorkout(Base):
 
     def __repr__(self):
         return (
-            f"DailyWorkout(did={self.did}, owner_id={self.owner_id}, bid={self.bid}, date={self.date}, "
+            f"DailyWorkout(wid={self.wid}, owner_id={self.owner_id}, bid={self.bid}, date={self.date}, "
             f"ptype={self.ptype}, energy={self.energy}, calorie={self.calorie}, status={self.status}, "
             f"created_at={self.created_at}, updated_at={self.updated_at})"
         )
 
 
-def is_did_duplicate(did: str) -> bool:
+def is_wid_duplicate(wid: str) -> bool:
+    """
+    Check if wid is duplicate
+
+    :param wid: wid 값
+    :return: bool
+        True if duplicate, False if not duplicate
+    """
     db = SessionLocal()
-    return db.query(DailyWorkout).filter_by(did=did).first()
+    return db.query(DailyWorkout).filter_by(wid=wid).first()
 
 
 def make_workout(uid: str, bid: str, point_type: int) -> DailyWorkout:
+    """
+    Make workout
+
+    :param uid: owner_id 값
+    :param bid: bid 값
+    :param point_type: point_type 값
+    :return: DailyWorkout
+        생성된 workout 객체
+    """
     while True:
-        did = generate_hash()
-        # did가 중복되지 않는지 확인
-        if not is_did_duplicate(did):
+        wid = generate_hash()
+        # wid가 중복되지 않는지 확인
+        if not is_wid_duplicate(wid):
             break
 
-    return DailyWorkout(did=did, owner_id=uid, bid=bid, ptype=point_type)
+    return DailyWorkout(wid=wid, owner_id=uid, bid=bid, ptype=point_type)
 
 
-def get_workout_by_did(db: SessionLocal, did: str) -> DailyWorkout:
-    return db.query(DailyWorkout).filter_by(did=did).first()
+def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
+    """
+    Get workout by wid
+
+    :param db: SessionLocal
+    :param wid: wid 값
+    :return: DailyWorkout
+        해당하는 wid의 workout
+    """
+    return db.query(DailyWorkout).filter_by(wid=wid).first()
 
 
 def get_workout_by_bid(db: SessionLocal, bid: str) -> DailyWorkout:
+    """
+    Get workout by bid
+
+    :param db: SessionLocal
+    :param bid: bid 값
+    :return: DailyWorkout
+        해당하는 bid의 workout
+    """
     return db.query(DailyWorkout).filter_by(bid=bid).first()
 
 
-def get_workout_by_date(db: SessionLocal, owner_id: str, date: datetime.date, offset: int = 0, limit: int = 50) -> list[
-    DailyWorkout]:
-    return db.query(DailyWorkout).filter_by(owner_id=owner_id, date=date).offset(offset).limit(limit).all()
+def get_workout_by_date(db: SessionLocal, date: datetime.date, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
+    """
+    Get workout by date
+
+    :param db: SessionLocal
+    :param date: date 값
+    :param offset: 시작점, 기본값 0
+    :param limit: 결과값의 개수, 기본값 50
+    :return: list[DailyWorkout]
+        해당하는 date의 workout 리스트
+    """
+    return db.query(DailyWorkout).filter_by(date=date).order_by(DailyWorkout.created_at.desc()).offset(offset).limit(
+        limit).all()
 
 
 def get_workout_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
-    return db.query(DailyWorkout).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
+    """
+    Get workout by owner_id
+
+    :param db: SessionLocal
+    :param owner_id: owner_id 값
+    :param offset: 시작점, 기본값 0
+    :param limit: 결과값의 개수, 기본값 50
+    :return: list[DailyWorkout]
+        해당하는 owner_id의 workout 리스트
+    """
+    return db.query(DailyWorkout).filter_by(owner_id=owner_id).order_by(DailyWorkout.created_at.desc()).offset(offset).limit(
+        limit).all()
 
 
-def update_workout_values_by_did(db: SessionLocal, did: str, coin: float, point: int, wattage: float,
+def get_workout_by_date_and_owner_id(db: SessionLocal, owner_id: str, date: datetime.date = datetime.today(),
+                                        offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
+    """
+    Get workout by date and owner_id
+
+    :param db: SessionLocal
+    :param owner_id: owner_id 값
+    :param date: date 값, 기본값 datetime.today()
+    :param offset: 시작점, 기본값 0
+    :param limit: 결과값의 개수, 기본값 50
+    """
+    date = date.strftime("%Y-%m-%d")
+    logger.info(f"get_workout_by_date_and_owner_id: {owner_id}, {date}")
+    return db.query(DailyWorkout).filter_by(owner_id=owner_id, date=date).order_by(
+        DailyWorkout.created_at.desc()).offset(offset).limit(limit).all()
+
+
+def update_workout_values_by_wid(db: SessionLocal, wid: str, coin: float, point: int, wattage: float,
                                  calorie: float) -> int:
-    return db.query(DailyWorkout).filter_by(did=did).update(
+    return db.query(DailyWorkout).filter_by(wid=wid).update(
         {"coin": coin, "point": point, "wattage": wattage, "calorie": calorie})
+
+
+def calculate_workout_daily_by_owner_id(db: SessionLocal, owner_id: str, date: datetime.date) -> int:
+    return db.query(DailyWorkout).filter_by(owner_id=owner_id, date=date).update({"status": 1})
