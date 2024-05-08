@@ -3,9 +3,13 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Integer
 
 from internal.mysql_db import Base, SessionLocal
+from internal.utils import exception_handler
 
 
 class BikeManagement(Base):
+    """
+    BikeManagement Model - View
+    """
     __tablename__ = 'bike_management'
 
     bid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
@@ -32,13 +36,39 @@ class BikeManagement(Base):
         )
 
 
+@exception_handler
 def get_bike_management(db: SessionLocal, bid: str):
+    """
+    Get bike management by bid
+
+    :param db: database session
+    :param bid: bid value
+    :return: BikeManagement
+    """
     return db.query(BikeManagement).filter_by(bid=bid).first()
 
 
+@exception_handler
 def get_bike_management_by_bike_no(db: SessionLocal, bike_no: str):
+    """
+    Get bike management by bike_no
+
+    :param db: database session
+    :param bike_no: bike_no value
+    :return: BikeManagement
+    """
     return db.query(BikeManagement).filter_by(bike_no=bike_no).first()
 
 
+@exception_handler
 def get_bike_management_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list:
+    """
+    Get bike management by owner_id
+
+    :param db: database session
+    :param owner_id: owner_id value
+    :param offset: offset value
+    :param limit: limit value
+    :return: list
+    """
     return db.query(BikeManagement).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()

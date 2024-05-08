@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 import smtplib
+import traceback
 from datetime import time
 from email.message import EmailMessage
 from functools import wraps
@@ -49,17 +50,18 @@ def exception_handler(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except SQLAlchemyError as e:
-            # SQLAlchemy의 일반적인 오류 처리
-            logger.error(f"Database error: {e}")
-            # FastAPI의 HTTPException을 사용하여 클라이언트에 적절한 HTTP 상태 코드와 메시지 전달
-            raise HTTPException(status_code=500, detail="Internal server error, please try again later.")
 
-        except Exception as e:
+        except SQLAlchemyError as _:
+            # SQLAlchemy의 일반적인 오류 처리
+            logger.error(f"Database error: {traceback.format_exc()}")
+            # FastAPI의 HTTPException을 사용하여 클라이언트에 적절한 HTTP 상태 코드와 메시지 전달
+            raise SQLAlchemyError(status_code=500, detail="Database error, please try again later.")
+
+        except Exception as _:
             # 그 외 모든 예외 처리
-            logger.error(f"An unexpected error occurred: {e}")
+            logger.error(f"An unexpected error occurred: {traceback.format_exc()}")
             # 예상치 못한 오류에 대해 500 상태 코드 반환
-            raise HTTPException(status_code=500, detail="An unexpected error occurred, please try again later.")
+            raise Exception()
 
     return wrapper
 

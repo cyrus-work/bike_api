@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 
 from internal.mysql_db import Base, SessionLocal
-from internal.utils import get_password_hash, generate_hash
+from internal.utils import get_password_hash, generate_hash, exception_handler
 
 
 class User(Base):
@@ -26,12 +26,46 @@ class User(Base):
         )
 
 
+def is_uid_duplicate(uid: str) -> bool:
+    """
+    Check if wid is duplicate
+
+    :param uid: uid 값
+    :return: bool
+        True if duplicate, False if not duplicate
+    """
+    db = SessionLocal()
+    return db.query(User).filter_by(uid=uid).first()
+
+
+@exception_handler
 def make_user(name: str, email: str, password: str) -> User:
-    uid = generate_hash()
+    """
+    Make user
+
+    :param name: name value
+    :param email: email value
+    :param password: password value
+    :return: User
+    """
+    while True:
+        uid = generate_hash()
+        # uid가 중복되지 않는지 확인
+        if not is_uid_duplicate(uid):
+            break
+
     hashed_pwd = get_password_hash(password)
     return User(uid=uid, name=name, email=email, hashed_pwd=hashed_pwd)
 
 
 ### database operations ###
+@exception_handler
 def get_user_by_email(db: SessionLocal, email: str) -> User:
+    """
+    email로 사용자를 조회한다.
+
+    :param db: db session
+    :param email: user email
+    :return: user
+    """
     return db.query(User).filter(User.email == email).first()

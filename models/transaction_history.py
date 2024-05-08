@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String, ForeignKey, Float, DECIMAL, Integer, SmallInteger
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, DateTime, String, ForeignKey, Float, DECIMAL, SmallInteger
 from sqlalchemy.orm.exc import NoResultFound
 
 from internal.mysql_db import Base, SessionLocal
@@ -63,32 +62,108 @@ class TransactionHistory(Base):
         )
 
 
-def make_transaction_history(wid: str, request_coin: float, amount_req: float, amount_res: float, amount: float,
-                             fee_operation: float, txn_hash: str, msg: str, status: int) -> TransactionHistory:
-    tid = generate_hash()
-    return TransactionHistory(tid=tid, wid=wid, request_coin=request_coin, amount_req=amount_req, amount_res=amount_res,
-                              amount=amount, fee_operation=fee_operation, txn_hash=txn_hash, msg=msg, status=status)
+def is_tid_duplicate(tid: str) -> bool:
+    """
+    Check if wid is duplicate
+
+    :param tid: tid 값
+    :return: bool
+        True if duplicate, False if not duplicate
+    """
+    db = SessionLocal()
+    return db.query(TransactionHistory).filter_by(tid=tid).first()
+
+
+@exception_handler
+def make_transaction_history(wid: str, amount_req: float, amount_res: float, fee_operation: float, deposit_at: datetime,
+                             result_at: datetime, txn_completed_at: datetime, operation_at: datetime, txn_hash: str,
+                             msg: str, status: int) -> TransactionHistory:
+    """
+    Make transaction history
+
+    :param wid: wallet id
+    :param amount_req: 요청된 코인 수량
+    :param amount_res: 지급된 코인 수량
+    :param fee_operation: 운영 수수료
+    :param deposit_at: 요청 시간
+    :param result_at: 전송 처리 시간
+    :param txn_completed_at: 전송 완료 시간
+    :param operation_at: 정산 일시
+    :param txn_hash: transaction hash
+    :param msg: message
+    :param status: status
+            0: 출금 요청
+            1: 전송 요청
+            2: 전송 요청 진행 - transaction hash 발급
+            3: 전송 완료
+            4: 운영 수수료 전송 요청 진행 - transaction hash 발급
+            5: 운영 수수료 전송 완료
+            7: 전송 요청 실패 - transaction hash 발급 실패, 전송 실패
+    :return: TransactionHistory
+    """
+    while True:
+        tid = generate_hash()
+        # tid가 중복되지 않는지 확인
+        if not is_tid_duplicate(tid):
+            break
+
+    return TransactionHistory(tid=tid, wid=wid, amount_req=amount_req, amount_res=amount_res,
+                              fee_operation=fee_operation,
+                              deposit_at=deposit_at, result_at=result_at, txn_completed_at=txn_completed_at,
+                              operation_at=operation_at, txn_hash=txn_hash, msg=msg, status=status)
 
 
 @exception_handler
 def get_transaction_history(db: SessionLocal, tid: str) -> TransactionHistory:
+    """
+    Get transaction history by tid
+
+    :param db: database session
+    :param tid: tid value
+    :return: TransactionHistory
+    """
     return db.query(TransactionHistory).filter_by(tid=tid).first()
 
 
 @exception_handler
 def get_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str) -> TransactionHistory:
+    """
+    Get transaction history by txn_hash
+
+    :param db: database session
+    :param txn_hash: txn_hash value
+    :return: TransactionHistory
+    """
     return db.query(TransactionHistory).filter_by(txn_hash=txn_hash).first()
 
 
 @exception_handler
 def get_transaction_history_by_wallet_id(db: SessionLocal, wid: str, offset: int = 0,
                                          limit: int = 50) -> TransactionHistory:
+    """
+    Get transaction history by wallet id
+
+    :param db: database session
+    :param wid: wallet id
+    :param offset: offset value
+    :param limit: limit value
+    :return: TransactionHistory
+    """
     return db.query(TransactionHistory).filter_by(wid=wid).offset(offset).limit(limit).all()
 
 
 @exception_handler
 def get_transaction_history_by_txn_completed_at_later_than(db: SessionLocal, txn_completed_at: datetime,
                                                            offset: int = 0, limit: int = 50) -> TransactionHistory:
+    """
+    Get transaction history by txn_completed_at later than
+
+    :param db: database session
+    :param txn_completed_at: txn_completed_at value
+    :param offset: offset value
+    :param limit: limit value
+    :return: TransactionHistory
+    """
     return db.query(TransactionHistory).filter(TransactionHistory.txn_completed_at > txn_completed_at).offset(
         offset).limit(limit).all()
 
@@ -96,12 +171,29 @@ def get_transaction_history_by_txn_completed_at_later_than(db: SessionLocal, txn
 @exception_handler
 def get_transaction_history_by_txn_completed_at_earlier_than(db: SessionLocal, txn_completed_at: datetime,
                                                              offset: int = 0, limit: int = 50) -> TransactionHistory:
+    """
+    Get transaction history by txn_completed_at earlier than
+
+    :param db: database session
+    :param txn_completed_at: txn_completed_at value
+    :param offset: offset value
+    :param limit: limit value
+    :return: TransactionHistory
+    """
     return db.query(TransactionHistory).filter(TransactionHistory.txn_completed_at < txn_completed_at).offset(
         offset).limit(limit).all()
 
 
 @exception_handler
 def update_transaction_history_by_tid(db: SessionLocal, tid: int, **kwargs) -> TransactionHistory:
+    """
+    Update transaction history by tid
+
+    :param db: database session
+    :param tid: tid value
+    :param kwargs: update values
+    :return: TransactionHistory
+    """
     # 데이터베이스에서 TransactionHistory 객체 조회
     transaction_history = db.query(TransactionHistory).filter_by(tid=tid).first()
 
@@ -121,6 +213,14 @@ def update_transaction_history_by_tid(db: SessionLocal, tid: int, **kwargs) -> T
 
 @exception_handler
 def update_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str, **kwargs) -> TransactionHistory:
+    """
+    Update transaction history by txn_hash
+
+    :param db: database session
+    :param txn_hash: txn_hash value
+    :param kwargs: update values
+    :return: TransactionHistory
+    """
     transaction_history = db.query(TransactionHistory).filter_by(txn_hash=txn_hash).first()
 
     if transaction_history is None:
@@ -137,9 +237,18 @@ def update_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str, **kw
 
 @exception_handler
 def delete_transaction_history_by_tid(db: SessionLocal, tid: int) -> None:
+    """
+    Delete transaction history by tid
+
+    :param db: database session
+    :param tid: tid value
+    """
     transaction_history = db.query(TransactionHistory).filter_by(tid=tid).first()
 
     if transaction_history is None:
         raise NoResultFound(f"No TransactionHistory found with tid={tid}")
 
-    transaction_history.delete()
+    db.delete(transaction_history)
+    db.commit()
+
+    return None

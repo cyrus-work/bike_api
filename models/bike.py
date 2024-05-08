@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
 
 from internal.mysql_db import Base, SessionLocal
-from internal.utils import generate_hash
+from internal.utils import generate_hash, exception_handler
 
 
 class Bike(Base):
@@ -31,22 +31,87 @@ class Bike(Base):
         )
 
 
-def make_bike(bike_no: str, cpu_version: str, board_version: str, owner_id: str, agency_id: str) -> Bike:
-    return Bike(bid=generate_hash(), bike_no=bike_no, cpu_version=cpu_version, board_version=board_version,
-                owner_id=owner_id, agency_id=agency_id)
+def is_bid_duplicate(bid: str) -> bool:
+    """
+    Check if wid is duplicate
 
-
-def get_bike_by_bid(db: SessionLocal, bid: str) -> Bike:
+    :param bid: bid 값
+    :return: bool
+        True if duplicate, False if not duplicate
+    """
+    db = SessionLocal()
     return db.query(Bike).filter_by(bid=bid).first()
 
 
+@exception_handler
+def make_bike(bike_no: str, cpu_version: str, board_version: str, owner_id: str, agency_id: str) -> Bike:
+    """
+    Make bike
+
+    :param bike_no: bike_no 값
+    :param cpu_version: cpu_version 값
+    :param board_version: board_version 값
+    :param owner_id: owner_id 값
+    :param agency_id: agency_id 값
+    :return: Bike
+    """
+    while True:
+        bid = generate_hash()
+        # bid가 중복되지 않는지 확인
+        if not is_bid_duplicate(bid):
+            break
+
+    return Bike(bid=bid, bike_no=bike_no, cpu_version=cpu_version, board_version=board_version,
+                owner_id=owner_id, agency_id=agency_id)
+
+
+@exception_handler
+def get_bike_by_bid(db: SessionLocal, bid: str) -> Bike:
+    """
+    Get bike by bid
+
+    :param db: database session
+    :param bid: bid value
+    :return: Bike
+    """
+    return db.query(Bike).filter_by(bid=bid).first()
+
+
+@exception_handler
 def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
+    """
+    Get bike by bike_no
+
+    :param db: database session
+    :param bike_no: bike_no value
+    :return: Bike
+    """
     return db.query(Bike).filter_by(bike_no=bike_no).first()
 
 
+@exception_handler
 def get_bikes_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list[Bike]:
+    """
+    Get bikes by owner_id
+
+    :param db: database session
+    :param owner_id: owner_id value
+    :param offset: offset value
+    :param limit: limit value
+    :return: list[Bike]
+    """
     return db.query(Bike).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
 
 
+@exception_handler
 def get_bikes_by_agency_id(db: SessionLocal, agency_id: str, offset: int = 0, limit: int = 50) -> list[Bike]:
+    """
+    Get bikes by agency_id
+
+    :param db: database session
+    :param agency_id: agency_id value
+    :param offset: offset value
+    :param limit: limit value
+    :return: list[Bike]
+    """
     return db.query(Bike).filter_by(agency_id=agency_id).offset(offset).limit(limit).all()

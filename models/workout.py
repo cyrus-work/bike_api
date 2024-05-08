@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Date, DECI
 
 from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
-from internal.utils import generate_hash
+from internal.utils import generate_hash, exception_handler
 
 
 class DailyWorkout(Base):
@@ -42,6 +42,7 @@ def is_wid_duplicate(wid: str) -> bool:
     return db.query(DailyWorkout).filter_by(wid=wid).first()
 
 
+@exception_handler
 def make_workout(uid: str, bid: str, point_type: int) -> DailyWorkout:
     """
     Make workout
@@ -61,6 +62,7 @@ def make_workout(uid: str, bid: str, point_type: int) -> DailyWorkout:
     return DailyWorkout(wid=wid, owner_id=uid, bid=bid, ptype=point_type)
 
 
+@exception_handler
 def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
     """
     Get workout by wid
@@ -73,6 +75,7 @@ def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
     return db.query(DailyWorkout).filter_by(wid=wid).first()
 
 
+@exception_handler
 def get_workout_by_bid(db: SessionLocal, bid: str) -> DailyWorkout:
     """
     Get workout by bid
@@ -85,6 +88,7 @@ def get_workout_by_bid(db: SessionLocal, bid: str) -> DailyWorkout:
     return db.query(DailyWorkout).filter_by(bid=bid).first()
 
 
+@exception_handler
 def get_workout_by_date(db: SessionLocal, date: datetime.date, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
     """
     Get workout by date
@@ -100,6 +104,7 @@ def get_workout_by_date(db: SessionLocal, date: datetime.date, offset: int = 0, 
         limit).all()
 
 
+@exception_handler
 def get_workout_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
     """
     Get workout by owner_id
@@ -111,12 +116,14 @@ def get_workout_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, li
     :return: list[DailyWorkout]
         해당하는 owner_id의 workout 리스트
     """
-    return db.query(DailyWorkout).filter_by(owner_id=owner_id).order_by(DailyWorkout.created_at.desc()).offset(offset).limit(
+    return db.query(DailyWorkout).filter_by(owner_id=owner_id).order_by(DailyWorkout.created_at.desc()).offset(
+        offset).limit(
         limit).all()
 
 
+@exception_handler
 def get_workout_by_date_and_owner_id(db: SessionLocal, owner_id: str, date: datetime.date = datetime.today(),
-                                        offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
+                                     offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
     """
     Get workout by date and owner_id
 
@@ -132,11 +139,34 @@ def get_workout_by_date_and_owner_id(db: SessionLocal, owner_id: str, date: date
         DailyWorkout.created_at.desc()).offset(offset).limit(limit).all()
 
 
+@exception_handler
 def update_workout_values_by_wid(db: SessionLocal, wid: str, coin: float, point: int, wattage: float,
                                  calorie: float) -> int:
+    """
+    Update workout values by wid
+
+    :param db: SessionLocal
+    :param wid: wid 값
+    :param coin: coin 값
+    :param point: point 값
+    :param wattage: wattage 값
+    :param calorie: calorie 값
+    :return: int
+        업데이트된 row 수
+    """
     return db.query(DailyWorkout).filter_by(wid=wid).update(
         {"coin": coin, "point": point, "wattage": wattage, "calorie": calorie})
 
 
+@exception_handler
 def calculate_workout_daily_by_owner_id(db: SessionLocal, owner_id: str, date: datetime.date) -> int:
+    """
+    Calculate workout daily by owner_id
+
+    :param db: SessionLocal
+    :param owner_id: owner_id 값
+    :param date: date 값
+    :return: int
+        업데이트된 row 수
+    """
     return db.query(DailyWorkout).filter_by(owner_id=owner_id, date=date).update({"status": 1})
