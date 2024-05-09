@@ -140,6 +140,25 @@ def get_workout_by_date_and_owner_id(db: SessionLocal, owner_id: str, date: date
 
 
 @exception_handler
+def get_workout_duration_by_date_and_owner_id(db: SessionLocal, owner_id: str, start_date: datetime.date,
+                                              end_date: datetime.date, offset: int = 0, limit: int = 50) -> list[
+    DailyWorkout]:
+    """
+    Get workout duration by date and owner_id
+
+    :param db: SessionLocal
+    :param owner_id: owner_id 값
+    :param start_date: start_date 값
+    :param end_date: end_date 값
+    :param offset: 시작점, 기본값 0
+    :param limit: 결과값의 개수, 기본값 50
+    """
+    return db.query(DailyWorkout).filter(DailyWorkout.owner_id == owner_id, DailyWorkout.date >= start_date,
+                                         DailyWorkout.date <= end_date).order_by(
+        DailyWorkout.created_at.desc()).offset(offset).limit(limit).all()
+
+
+@exception_handler
 def update_workout_values_by_wid(db: SessionLocal, wid: str, coin: float, point: int, wattage: float,
                                  calorie: float) -> int:
     """

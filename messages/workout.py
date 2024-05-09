@@ -50,6 +50,23 @@ class WorkoutGetRequest(BaseModel):
         }
 
 
+class WorkoutGetDurationRequest(BaseModel):
+    start_date: str
+    end_date: Optional[str] = None
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "start_date": "2021-07-06",
+                "end_date": "2021-07-06",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
 class WorkoutCreateMsg(BaseModel):
     workout_id: str
 
