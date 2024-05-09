@@ -28,18 +28,6 @@ class UserCheck(Base):
         return f"UserCheck(id={self.id}, checker={self.checker})"
 
 
-def is_cid_duplicate(cid: str) -> bool:
-    """
-    Check if wid is duplicate
-
-    :param cid: cid 값
-    :return: bool
-        True if duplicate, False if not duplicate
-    """
-    db = SessionLocal()
-    return db.query(UserCheck).filter_by(cid=cid).first()
-
-
 @exception_handler
 def make_user_check(id: str, checker: str) -> UserCheck:
     """
@@ -49,13 +37,7 @@ def make_user_check(id: str, checker: str) -> UserCheck:
     :param checker: checker
     :return: UserCheck
     """
-    while True:
-        cid = generate_hash()
-        # cid가 중복되지 않는지 확인
-        if not is_cid_duplicate(cid):
-            break
-
-    return UserCheck(id=cid, checker=checker)
+    return UserCheck(id=id, checker=checker)
 
 
 @exception_handler

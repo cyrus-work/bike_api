@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, DateTime
 
+from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
 from internal.utils import get_password_hash, generate_hash, exception_handler
 
@@ -69,3 +70,55 @@ def get_user_by_email(db: SessionLocal, email: str) -> User:
     :return: user
     """
     return db.query(User).filter(User.email == email).first()
+
+@exception_handler
+def get_users(db: SessionLocal, offset: int = 0, limit: int = 50) -> User:
+    """
+    사용자의 이메일 인증을 확인한다.
+
+    :param db: SessionLocal
+    :param offset: offset
+    :param limit: limit
+    :return: checker
+    """
+    logger.info(">>> get_user_check_by_id start.")
+    try:
+        return db.query(User).order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+
+    finally:
+        logger.info(">>> get_user_check_by_id end.")
+
+@exception_handler
+def delete_user_by_uid(db: SessionLocal, uid: str) -> None:
+    """
+    사용자를 삭제한다.
+
+    :param db: SessionLocal
+    :param uid: uid
+    """
+    logger.info(">>> delete_user_by_uid start.")
+    try:
+        user = db.query(User).filter(User.uid == uid).first()
+        db.delete(user)
+        db.commit()
+
+    finally:
+        logger.info(">>> delete_user_by_uid end.")
+
+
+@exception_handler
+def delete_user_by_email(db: SessionLocal, email: str) -> None:
+    """
+    사용자를 삭제한다.
+
+    :param db: SessionLocal
+    :param email: email
+    """
+    logger.info(">>> delete_user_by_email start.")
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        db.delete(user)
+        db.commit()
+
+    finally:
+        logger.info(">>> delete_user_by_email end.")

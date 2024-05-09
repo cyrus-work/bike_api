@@ -5,9 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from jwt.exceptions import ExpiredSignatureError
+from sqlalchemy.exc import IntegrityError
 
 from internal.log import logger
-from internal.mysql_db import Base, engine
+from internal.mysql_db import Base, engine, SessionLocal
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.user import router as v1_user_router
@@ -26,9 +27,21 @@ app = FastAPI()
 async def expired_signature_exception_handler(request: Request, exc: ExpiredSignatureError):
     return JSONResponse(
         status_code=410,
-        content={"code": 451, "content": "JWT token expired"}
+        content={"code": 101, "content": "JWT token expired"}
     )
 
+
+@app.exception_handler(IntegrityError)
+async def unexpected_exception_handler(request: Request, exc: Exception):
+    logger.error(f"An unexpected error occurred: {traceback.format_exc()}")
+    db = SessionLocal()
+    db.rollback()
+
+    msg = {"code": 102, "content": "Integrity error occurred."}
+    return JSONResponse(
+        status_code=410,
+        content=msg
+    )
 
 @app.exception_handler(Exception)
 async def unexpected_exception_handler(request: Request, exc: Exception):

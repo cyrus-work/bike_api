@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from internal.app_config import database
+from internal.log import logger
 
 DB_USER = database["user"]
 DB_PASSWORD = database["password"]
@@ -16,3 +17,12 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 Base_ex = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    logger.info(f"get_db: db = SessionLocal()")
+    try:
+        yield db
+    finally:
+        logger.info(f"get_db: db.close()")
+        db.close()

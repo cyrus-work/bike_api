@@ -1,5 +1,3 @@
-import traceback
-
 from fastapi import APIRouter, Depends
 
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
@@ -13,38 +11,31 @@ from models.user import get_user_by_email
 router = APIRouter()
 
 
-@router.get("/")
-async def get_agency_api():
-    return {"message": "agency api"}
-
-
 @router.post("/create",
              responses={
                  200: {"model": AgencyInfo},
                  461: {"model": AgencyManagementFailMsg},
              }, )
-async def post_create_agency_api(agency: AgencyCreateRequest):
+async def post_create_agency_api(agency: AgencyCreateRequest, db: SessionLocal = Depends(SessionLocal)):
     """
     Create agency
 
     :param agency:
+    :param db:
     :return:
     """
-    logger.info(f"post_create_agency_api start: {agency}")
-    db = None
-
-    owner_email = agency.owner_email
-    address = agency.address
-    phone = agency.phone
-    name = agency.name
+    logger.info(f">>> post_create_agency_api start: {agency}")
 
     try:
-        db = SessionLocal()
+        owner_email = agency.owner_email
+        address = agency.address
+        phone = agency.phone
+        name = agency.name
 
         db_owner = get_user_by_email(db, owner_email)
         if db_owner is None:
             msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_create_agency_api: {msg}")
+            logger.error(f"post_create_agency_api msg: {msg}")
             return AgencyManagementFailMsg(**msg)
 
         owner_id = db_owner.uid
@@ -56,25 +47,21 @@ async def post_create_agency_api(agency: AgencyCreateRequest):
         return AgencyInfo(**db_agency.__dict__)
 
     finally:
-        logger.info(f"post_create_agency_api end")
-        if db:
-            db.close()
+        logger.info(f">>> post_create_agency_api end")
 
 
 @router.post('/get_own')
-async def get_agency_by_owner_api(token: str = Depends(oauth2_scheme)):
+async def get_agency_by_owner_api(db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)):
     """
     Get agency by owner email
 
     :param token:
+    :param db:
     :return:
     """
-    logger.info(f"get_agency_by_owner_api start")
-    db = None
+    logger.info(f">>> get_agency_by_owner_api start")
 
     try:
-        db = SessionLocal()
-
         email = get_email_from_jwt(token)
 
         db_user = get_user_by_email(db, email)
@@ -89,6 +76,4 @@ async def get_agency_by_owner_api(token: str = Depends(oauth2_scheme)):
         return [AgencyInfo(**model_to_dict(agency)) for agency in db_agency]
 
     finally:
-        logger.info(f"get_agency_by_owner_api end")
-        if db:
-            db.close()
+        logger.info(f">>> get_agency_by_owner_api end")

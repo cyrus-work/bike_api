@@ -84,7 +84,19 @@ def get_agency_by_email(db: SessionLocal, email: str) -> Agency:
 
 
 @exception_handler
-def get_agency_by_name(db: SessionLocal, name: str) -> list[Agency]:
+def get_agency_by_name(db: SessionLocal, name: str) -> Agency:
+    """
+    Get agencies by name pattern
+
+    :param db: database session
+    :param name: agency name for search
+    :return: Agency
+    """
+    return db.query(Agency).filter_by(name=name).first()
+
+
+@exception_handler
+def get_agencies_by_name(db: SessionLocal, name: str) -> list[Agency]:
     """
     Get agencies by name pattern
 
