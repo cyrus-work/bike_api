@@ -9,13 +9,13 @@ from internal.html_msg import html_ok_msg, html_ng_msg
 from internal.jwt_auth import create_access_token, create_refresh_token, auth
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from internal.utils import verify_password, generate_hash, send_mail
+from internal.utils import verify_password, generate_hash, send_mail, get_password_hash
 from messages.jwt_auth import AccessRefreshTokenMsg, SQLIntegrityErrorMsg
 from messages.user import LoginFailMsg, UserNotFoundMsg, UserPasswordNotMatchMsg, UserLoginRequest, UserCreateMsg, \
-    UserResendMsg, UserEmailAuthFailMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserResendFailMsg, \
+    UserResendMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserResendFailMsg, \
     UserEmailRequest, UserEmailConfirmMsg, InvalidUuidMsg
-from models.user import get_user_by_email, make_user, get_users
-from models.user_check import make_user_check, get_user_check_by_id
+from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
+from models.user_check import make_user_check, get_user_check_by_email
 
 router = APIRouter()
 
@@ -116,12 +116,12 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
 
         db.commit()
 
-        checker = generate_hash()
-        send_mail(mail_config, db_user.email, checker)
-
-        db_check = make_user_check(id=db_user.uid, checker=checker)
-        db.add(db_check)
-        db.commit()
+        # checker = generate_hash()
+        # send_mail(mail_config, db_user.email, checker)
+        #
+        # db_check = make_user_check(id=db_user.uid, checker=checker)
+        # db.add(db_check)
+        # db.commit()
 
         return UserCreateMsg(code=200, content="User create success")
 
@@ -130,53 +130,55 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
 
 
 @router.post(
-    "/resend",
+    "/email_send",
     responses={
         200: {"model": UserResendMsg},
         461: {"model": UserNotFoundMsg},
         462: {"model": UserResendFailMsg},
     },
 )
-async def resend_user_api(data: UserEmailRequest, db: SessionLocal = Depends(get_db)):
+async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = Depends(get_db)):
     """
-    이메일 인증을 다시 요청함.
+    이메일 인증을 요청함.
 
     table [user_check]
     :param data: UserResendRequest 모델
     :param db: db session
     :return: UserResendMsg 모델
     """
-    logger.info(f"resend_user_api start: {data}")
+    logger.info(f">>> post_user_email_send_api start: {data}")
 
     try:
-        email_str = data.email
-
-        db_user = get_user_by_email(db, email_str)
-        logger.info(f"resend_user_api db_user: {db_user}")
-        if db_user is None:
-            msg = {"code": 462, "content": "User not found"}
-            logger.error(f"resend_user_api msg: {msg}")
-            return UserNotFoundMsg(**msg)
-
-        db_check = get_user_check_by_id(db, db_user.uid)
-        if db_check is None:
-            msg = {"code": 463, "content": "User auth checker not found"}
-            logger.error(f"resend_user_api msg: {msg}")
-            return UserEmailAuthFailMsg(**msg)
-
-        logger.info(f"resend_user_api db_user: {db_user}")
+        email = data.email
 
         checker = generate_hash()
-        send_mail(mail_config, db_user.email, checker)
-        db_check.checker = checker
-        db.merge(db_check)
-        db.commit()
 
-        logger.info(f"resend_user_api db_check: {email_str}, {checker}")
-        return UserResendMsg(code=200, content="Resend email", email=email_str)
+        db_user = get_user_exist_by_email(db, email)
+        logger.info(f"post_user_email_send_api: {db_user}")
+        if db_user is not None:
+            msg = {"code": 462, "content": "User founded"}
+            logger.error(f"post_user_email_send_api msg: {msg}")
+            return JSONResponse(status_code=462, content=msg)
+
+        db_check = get_user_check_by_email(db, email)
+        if db_check is None:
+            logger.info(f"post_user_email_send_api: new user")
+            db_checkout = make_user_check(email=email, checker=checker)
+            db.add(db_checkout)
+            db.commit()
+        else:
+            logger.info(f"post_user_email_send_api: resend user")
+            db_check.checker = checker
+            db.merge(db_check)
+            db.commit()
+
+        send_mail(mail_config, email, checker)
+
+        logger.info(f"post_user_email_send_api db_check: {email}, {checker}")
+        return UserResendMsg(code=200, content="Send email", email=email)
 
     finally:
-        logger.info(f">>> resend_user_api end")
+        logger.info(f">>> post_user_email_send_api end")
 
 
 @router.get(
@@ -203,22 +205,15 @@ async def email_confirm_user_api(email: str, checker: str, db: SessionLocal = De
         html_ok_content = html_ok_msg(web_url)
         html_ng_content = html_ng_msg(web_url)
 
-        db_user = get_user_by_email(db, email)
-        if db_user is None:
-            msg = {"code": 462, "content": "User not found"}
-            logger.error(f"email_confirm_user_api msg: {msg}")
-            return JSONResponse(status_code=462, content=msg)
-
-        db_check = get_user_check_by_id(db, db_user.uid)
+        db_check = get_user_check_by_email(db, email)
         if db_check is None:
             msg = {"code": 463, "content": "User auth checker not found"}
             logger.error(f"email_confirm_user_api msg: {msg}")
             return JSONResponse(status_code=463, content=msg)
 
         if db_check.checker == checker:
-            db_user.email_verified = "Y"
-            db.merge(db_user)
-            db.delete(db_check)
+            db_user = make_user(email=email, password='', name='', email_verified="Y")
+            db.add(db_user)
             db.commit()
 
             logger.info(f"email_confirm_user_api: {email} confirm success")
@@ -233,6 +228,41 @@ async def email_confirm_user_api(email: str, checker: str, db: SessionLocal = De
 
     finally:
         logger.info(f">>> email_confirm_user_api end")
+
+
+@router.post("/update")
+async def update_user_by_email_api(req: UserCreateRequest, db: SessionLocal = Depends(get_db)):
+    """
+    사용자 업데이트
+
+    :param req: UserCreateRequest 모델
+    :param db: db session
+    :return:
+    """
+    logger.info(f">>> update_user_by_email_api: {req}")
+
+    try:
+        email = req.email
+        password = req.password
+
+        db_user = get_user_by_email(db, email)
+        if db_user is None:
+            msg = {"code": 462, "content": "User not found"}
+            logger.error(f"update_user_by_email_api msg: {msg}")
+            return JSONResponse(status_code=462, content=msg)
+
+        db_user.name = req.name
+        db_user.hashed_pwd = get_password_hash(password)
+
+        db.merge(db_user)
+        db.commit()
+
+        logger.info(f"update_user_by_email_api: {email} update success")
+        return {"message": "update success"}
+
+    finally:
+        logger.info(f">>> update_user_by_email_api end")
+
 
 @router.get("/users")
 async def read_users(db: SessionLocal = Depends(get_db)):

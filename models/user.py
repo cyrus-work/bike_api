@@ -40,13 +40,14 @@ def is_uid_duplicate(uid: str) -> bool:
 
 
 @exception_handler
-def make_user(name: str, email: str, password: str) -> User:
+def make_user(name: str, email: str, password: str, email_verified: str = 'N') -> User:
     """
     Make user
 
     :param name: name value
     :param email: email value
     :param password: password value
+    :param email_verified: email_verified value
     :return: User
     """
     while True:
@@ -55,8 +56,11 @@ def make_user(name: str, email: str, password: str) -> User:
         if not is_uid_duplicate(uid):
             break
 
-    hashed_pwd = get_password_hash(password)
-    return User(uid=uid, name=name, email=email, hashed_pwd=hashed_pwd)
+    if password is not None:
+        hashed_pwd = get_password_hash(password)
+    else:
+        hashed_pwd = None
+    return User(uid=uid, name=name, email=email, hashed_pwd=hashed_pwd, email_verified=email_verified)
 
 
 ### database operations ###
@@ -70,6 +74,18 @@ def get_user_by_email(db: SessionLocal, email: str) -> User:
     :return: user
     """
     return db.query(User).filter(User.email == email).first()
+
+
+@exception_handler
+def get_user_exist_by_email(db: SessionLocal, email: str):
+    """
+    email로 사용자가 존재하는지 확인한다.
+
+    :param db: db session
+    :param email: user email
+    :return: bool
+    """
+    return db.query(User).filter(User.email == email, User.email_verified == 'Y').first()
 
 @exception_handler
 def get_users(db: SessionLocal, offset: int = 0, limit: int = 50) -> User:

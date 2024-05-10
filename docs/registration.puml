@@ -1,0 +1,22 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor User1
+
+User1 -> APP: Input email address
+
+APP -> Server : Email request
+
+Server -> User1 : Send Email
+
+User1 -> Server : Email Confirm
+
+User1 -> APP : Registration
+
+APP -> Server : Save Information
+
+Server -> APP : Registration Confirm
+
+@enduml

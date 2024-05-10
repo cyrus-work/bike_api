@@ -38,6 +38,30 @@ class UserCreateRequest(BaseModel):
             }
         }
 
+class UserUpdateRequest(BaseModel):
+    """
+    User create model
+
+    password: User password
+    email: User email
+    name: Username (optional)
+    email_confirm: User email confirm(default = 'N') (optional)
+    """
+
+    email: str
+    password: str
+    name: Optional[str] = None
+    email_confirm: Optional[str] = "Y"
+    class Config:
+        schema_extra = {
+            "example": {
+                "password": "test",
+                "email": "test@test.com",
+                "name": "test",
+                "email_confirm": "Y"
+            }
+        }
+
 
 class UserEmailRequest(BaseModel):
     """

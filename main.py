@@ -20,6 +20,8 @@ from routers.v1.workout import router as v1_workout_router
 # from models import transaction_history
 # from models import user_check
 
+import models.user_check
+
 app = FastAPI()
 
 
