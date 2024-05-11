@@ -9,14 +9,20 @@ User1 -> APP: Input email address
 
 APP -> Server : Email request
 
-Server -> User1 : Send Email
+Server -> User1 : Send Email (with key)
 
-User1 -> Server : Email Confirm
+User1 -> Server : Email Confirm (confirm key)
 
-User1 -> APP : Registration
+User1 -> APP : Registration (Using key)
 
 APP -> Server : Save Information
+note over Server
+    check key
+    save information
+end note
 
 Server -> APP : Registration Confirm
-
+note over Server
+    delete key
+end note
 @enduml

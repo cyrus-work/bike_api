@@ -20,12 +20,15 @@ class UserCreateRequest(BaseModel):
 
     password: User password
     email: User email
+    checker: str
     name: Username (optional)
     email_confirm: User email confirm(default = 'N') (optional)
     """
 
     email: str
     password: str
+    checker: str
+
     name: Optional[str] = None
     email_confirm: Optional[str] = "N"
 
@@ -35,8 +38,10 @@ class UserCreateRequest(BaseModel):
                 "password": "test",
                 "email": "test@test.com",
                 "name": "test",
+                "checker": "test",
             }
         }
+
 
 class UserUpdateRequest(BaseModel):
     """
@@ -52,6 +57,7 @@ class UserUpdateRequest(BaseModel):
     password: str
     name: Optional[str] = None
     email_confirm: Optional[str] = "Y"
+
     class Config:
         schema_extra = {
             "example": {

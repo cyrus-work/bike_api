@@ -15,6 +15,7 @@ from messages.user import LoginFailMsg, UserNotFoundMsg, UserPasswordNotMatchMsg
     UserResendMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserResendFailMsg, \
     UserEmailRequest, UserEmailConfirmMsg, InvalidUuidMsg
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
+from models.user_agree import make_user_agree
 from models.user_check import make_user_check, get_user_check_by_email
 
 router = APIRouter()
@@ -97,31 +98,30 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
     logger.info(f">>> post_create_user_api: {user}")
 
     try:
-        user_check = get_user_by_email(db, user.email)
-        if user_check is not None:
-            msg = {"code": 464, "content": "User Email Duplicate"}
-            logger.error(f"post_create_user_api msg: {msg}")
-            return JSONResponse(status_code=464, content=msg)
-
         name = user.name
         email = user.email
         password = user.password
+        checker = user.checker
+
+        db_user = get_user_by_email(db, user.email)
+        if db_user is not None:
+            msg = {"code": 464, "content": "User Email Duplicate"}
+            logger.error(f"post_create_user_api msg: {msg}")
+            return JSONResponse(status_code=464, content=msg)
 
         db_user = make_user(name=name, email=email, password=password)
 
         # user 생성
         db.add(db_user)
+        db.flush()
+
+        db_agree = make_user_agree(db_user.uid)
+        db.add(db_agree)
+        db.flush()
 
         logger.info(f"post_create_user_api db_user: {db_user}")
 
         db.commit()
-
-        # checker = generate_hash()
-        # send_mail(mail_config, db_user.email, checker)
-        #
-        # db_check = make_user_check(id=db_user.uid, checker=checker)
-        # db.add(db_check)
-        # db.commit()
 
         return UserCreateMsg(code=200, content="User create success")
 
