@@ -11,7 +11,7 @@ from internal.jwt_auth import create_access_token, create_refresh_token, auth, g
     oauth2_scheme, encoded_data_to_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from internal.utils import verify_password, send_mail, get_password_hash
+from internal.utils import verify_password, send_mail, get_password_hash, generate_hash
 from messages.jwt_auth import AccessRefreshTokenMsg, SQLIntegrityErrorMsg, TokenEmailNotExistsMsg, \
     TokenRefreshNotExistsMsg, AccessTokenMsg
 from messages.user import LoginFailMsg, UserNotFoundMsg, UserPasswordNotMatchMsg, UserLoginRequest, UserCreateMsg, \
@@ -149,25 +149,27 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
     try:
         email = data.email
 
-        # checker = generate_hash()
+        checker = generate_hash()
+        logger.info(f"post_user_email_send_api checker: {checker}")
+
         db_user = make_user(email=email, password='', name='', email_verified="N")
         db_user_exist = get_user_by_email(db, email)
         logger.info(f"post_user_email_send_api db_user_exist: {db_user_exist}")
         if db_user_exist is not None:
             if db_user_exist.email_verified == "Y":
+                logger.info(f"post_user_email_send_api: user exists")
                 raise UserExistsException
             else:
+                logger.info(f"post_user_email_send_api: delete user")
                 db.delete(db_user_exist)
                 db.commit()
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
         logger.info(f"post_user_email_send_api db_user: {db_user}")
 
         user_json = {"email": email, "uid": db_user.uid, "created_at": db_user.created_at.isoformat()}
-
-        checker = encoded_data_to_jwt(user_json)
-        logger.info(f"post_user_email_send_api checker: {checker}")
 
         db_user = get_user_exist_by_email(db, email)
         logger.info(f"post_user_email_send_api: {db_user}")
@@ -176,7 +178,23 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
             logger.error(f"post_user_email_send_api msg: {msg}")
             return JSONResponse(status_code=462, content=msg)
 
-        send_mail(mail_config, email, checker)
+        db_check = get_user_check_by_email(db, email)
+        if db_check is None:
+            logger.info(f"post_user_email_send_api: new user")
+            db_checkout = make_user_check(email=email, checker=checker)
+            db.add(db_checkout)
+            db.commit()
+        else:
+            logger.info(f"post_user_email_send_api: resend user")
+            db_check.checker = checker
+            db.merge(db_check)
+            db.commit()
+
+        user_json["checker"] = checker
+
+        checker_msg = encoded_data_to_jwt(user_json)
+
+        send_mail(mail_config, email, checker_msg)
 
         logger.info(f"post_user_email_send_api db_check: {email}, {checker}")
         return UserResendMsg(code=200, content="Send email", email=email)
