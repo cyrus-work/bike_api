@@ -39,6 +39,17 @@ class WorkoutKeepRequest(BaseModel):
         }
 
 
+class WorkoutDataRequest(BaseModel):
+    data: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "data": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMjM0LCJ1c2VybmFtZSI6ImV4YW1wbGVfdXNlciIsImV4cCI6MTcxNTQyOTIwNn0.XVn71RSBx4osoy5oMTwH3IhiBoMnenHmhLJDhDhBQwc",
+            }
+        }
+
+
 class WorkoutGetRequest(BaseModel):
     date: Optional[str] = None
 

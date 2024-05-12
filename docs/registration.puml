@@ -6,12 +6,28 @@ autonumber
 actor User1
 
 User1 -> APP: Input email address
+note over APP
+    사용자 인증용 email 입력
+end note
 
 APP -> Server : Email request
+note over Server
+    /user/email_send
+
+    인증용 email 전송
+end note
 
 Server -> User1 : Send Email (with key)
+note over Server
+    email 전송
+end note
 
 User1 -> Server : Email Confirm (confirm key)
+note over User1
+    /user/email_confirm
+    사용자 키 확인.
+end note
+
 
 User1 -> APP : Registration (Using key)
 

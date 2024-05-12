@@ -1,23 +1,22 @@
-import traceback
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
-from jwt import ExpiredSignatureError
 
 from internal.app_config import mail_config
+from internal.exceptions import UserExistsException
 from internal.html_msg import html_ok_msg, html_ng_msg
 from internal.jwt_auth import create_access_token, create_refresh_token, auth, get_info_from_refresh_token, \
-    oauth2_scheme
+    oauth2_scheme, encoded_data_to_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from internal.utils import verify_password, generate_hash, send_mail, get_password_hash
+from internal.utils import verify_password, send_mail, get_password_hash
 from messages.jwt_auth import AccessRefreshTokenMsg, SQLIntegrityErrorMsg, TokenEmailNotExistsMsg, \
-    TokenRefreshNotExistsMsg, AccessTokenMsg, TokenExpiredMsg
+    TokenRefreshNotExistsMsg, AccessTokenMsg
 from messages.user import LoginFailMsg, UserNotFoundMsg, UserPasswordNotMatchMsg, UserLoginRequest, UserCreateMsg, \
-    UserResendMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserResendFailMsg, \
-    UserEmailRequest, UserEmailConfirmMsg, InvalidUuidMsg
+    UserResendMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserEmailRequest, UserEmailConfirmMsg, \
+    InvalidUuidMsg
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
 from models.user_agree import make_user_agree
 from models.user_check import make_user_check, get_user_check_by_email
@@ -135,11 +134,6 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
 
 @router.post(
     "/email_send",
-    responses={
-        200: {"model": UserResendMsg},
-        461: {"model": UserNotFoundMsg},
-        462: {"model": UserResendFailMsg},
-    },
 )
 async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = Depends(get_db)):
     """
@@ -155,7 +149,25 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
     try:
         email = data.email
 
-        checker = generate_hash()
+        # checker = generate_hash()
+        db_user = make_user(email=email, password='', name='', email_verified="N")
+        db_user_exist = get_user_by_email(db, email)
+        logger.info(f"post_user_email_send_api db_user_exist: {db_user_exist}")
+        if db_user_exist is not None:
+            if db_user_exist.email_verified == "Y":
+                raise UserExistsException
+            else:
+                db.delete(db_user_exist)
+                db.commit()
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"post_user_email_send_api db_user: {db_user}")
+
+        user_json = {"email": email, "uid": db_user.uid, "created_at": db_user.created_at.isoformat()}
+
+        checker = encoded_data_to_jwt(user_json)
+        logger.info(f"post_user_email_send_api checker: {checker}")
 
         db_user = get_user_exist_by_email(db, email)
         logger.info(f"post_user_email_send_api: {db_user}")
@@ -163,18 +175,6 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
             msg = {"code": 462, "content": "User founded"}
             logger.error(f"post_user_email_send_api msg: {msg}")
             return JSONResponse(status_code=462, content=msg)
-
-        db_check = get_user_check_by_email(db, email)
-        if db_check is None:
-            logger.info(f"post_user_email_send_api: new user")
-            db_checkout = make_user_check(email=email, checker=checker)
-            db.add(db_checkout)
-            db.commit()
-        else:
-            logger.info(f"post_user_email_send_api: resend user")
-            db_check.checker = checker
-            db.merge(db_check)
-            db.commit()
 
         send_mail(mail_config, email, checker)
 
@@ -301,6 +301,7 @@ async def delete_user_by_email_api(req: UserEmailRequest, db: SessionLocal = Dep
 
     finally:
         logger.info(f">>> delete_user_by_email_api end")
+
 
 @router.post(
     "/refresh",

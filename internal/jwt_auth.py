@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
+from internal.exceptions import JWTDataExpiredException
 from internal.log import logger
 from internal.mysql_db import SessionLocal
 from internal.utils import verify_password
@@ -20,6 +21,8 @@ from models.user import get_user_by_email
 with open("./configs/auth.json") as f:
     auth = json.load(f)
     SECRET_KEY = auth["secret"]
+    DATA_SECRET_KEY = auth["data_secret"]
+    data_expires = auth["data_expires"]
     f.close()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8000/users/login")
@@ -75,6 +78,40 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
+def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    data를 jwt로 인코딩하는 함수
+
+    :param data:
+    :param expires_delta:
+    :return:
+    """
+    logger.info(f"encoded_data_to_jwt: {data}")
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        # 기본 값으로 data_expires를 사용 (60 분)
+        expire = datetime.utcnow() + timedelta(minutes=data_expires)
+    data.update({"exp": expire})
+    encoded_jwt = jwt.encode(data, DATA_SECRET_KEY, algorithm="HS256")
+    return encoded_jwt
+
+
+def decode_data_from_jwt(token: str):
+    """
+    jwt를 data로 디코딩하는 함수
+
+    :param token:
+    :return:
+    """
+    logger.info(f"decode_data_from_jwt: {token}")
+    try:
+        decoded_data = jwt.decode(token, DATA_SECRET_KEY, algorithms=["HS256"])
+        return decoded_data
+    except ExpiredSignatureError:
+        raise JWTDataExpiredException
+
+
 def get_email_from_jwt(token: str):
     payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
     email: str = payload.get("email")
@@ -91,11 +128,11 @@ def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authoriza
             raise InvalidTokenError("Invalid JWT token")
         return email
     except ExpiredSignatureError:
-        raise HTTPException(status_code=461, detail="JWT token expired")
+        raise ExpiredSignatureError
     except InvalidTokenError:
-        raise HTTPException(status_code=461, detail="Invalid JWT token")
+        raise InvalidTokenError
     except Exception as _:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise Exception
 
 
 def get_info_from_refresh_token(token: str):
@@ -114,8 +151,8 @@ def get_user_from_jwt(db: SessionLocal, token: str):
         return user
 
     except Exception as _:
-        logger.error(e)
-        return None
+        logger.error(f"get_user_from_jwt: {traceback.format_exc()}")
+        raise Exception
 
 
 def verify_token(token: str):
@@ -134,3 +171,5 @@ def get_payload_from_jwt(req: Request, token: str = Depends(oauth2_scheme)):
 
     result = TokenData(email=payload.get("email"), ip=payload.get("ip"))
     return result
+
+
