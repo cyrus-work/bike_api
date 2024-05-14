@@ -16,7 +16,9 @@ class UserCheck(Base):
 
     __tablename__ = "user_check"
 
-    cid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True, index=True)
+    cid = Column(
+        String(64, collation="latin1_swedish_ci"), primary_key=True, index=True
+    )
     email = Column(String(120, collation="latin1_swedish_ci"))
     checker = Column(String(64))
     created_at = Column(DateTime, default=func.now())

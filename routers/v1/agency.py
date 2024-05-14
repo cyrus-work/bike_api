@@ -12,8 +12,12 @@ from models.user import get_user_by_email
 router = APIRouter()
 
 
-@router.post("/create", )
-async def post_create_agency_api(agency: AgencyCreateRequest, db: SessionLocal = Depends(SessionLocal)):
+@router.post(
+    "/create",
+)
+async def post_create_agency_api(
+    agency: AgencyCreateRequest, db: SessionLocal = Depends(SessionLocal)
+):
     """
     Create agency
 
@@ -45,8 +49,10 @@ async def post_create_agency_api(agency: AgencyCreateRequest, db: SessionLocal =
         logger.info(f">>> post_create_agency_api end")
 
 
-@router.post('/get_own')
-async def get_agency_by_owner_api(db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)):
+@router.post("/get_own")
+async def get_agency_by_owner_api(
+    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+):
     """
     Get agency by owner email
 

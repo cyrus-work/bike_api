@@ -7,11 +7,16 @@ from internal.utils import generate_hash, exception_handler
 
 
 class Agency(Base):
-    __tablename__ = 'agencies'
+    __tablename__ = "agencies"
 
-    aid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True, index=True)
-    owner_id = Column(String(64, collation="latin1_swedish_ci"), ForeignKey("users.uid", ondelete="CASCADE"),
-                      index=True)
+    aid = Column(
+        String(64, collation="latin1_swedish_ci"), primary_key=True, index=True
+    )
+    owner_id = Column(
+        String(64, collation="latin1_swedish_ci"),
+        ForeignKey("users.uid", ondelete="CASCADE"),
+        index=True,
+    )
     name = Column(String(100, collation="utf8mb4_unicode_ci"), index=True, unique=True)
     address = Column(String(255, collation="latin1_swedish_ci"))
     phone = Column(String(16, collation="latin1_swedish_ci"))
@@ -109,7 +114,9 @@ def get_agencies_by_name(db: SessionLocal, name: str) -> list[Agency]:
 
 
 @exception_handler
-def get_agency_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list[Agency]:
+def get_agency_by_owner_id(
+    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+) -> list[Agency]:
     """
     Get agency by owner_id
 
@@ -119,7 +126,9 @@ def get_agency_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, lim
     :param limit: limit value, default 50
     :return: list[Agency]
     """
-    return db.query(Agency).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
+    return (
+        db.query(Agency).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
+    )
 
 
 @exception_handler
@@ -136,7 +145,9 @@ def update_agency_status(db: SessionLocal, aid: str, status: int) -> int:
 
 
 @exception_handler
-def update_agency_by_owner_id(db: SessionLocal, owner_id: str, name: str, address: str, phone: str) -> int:
+def update_agency_by_owner_id(
+    db: SessionLocal, owner_id: str, name: str, address: str, phone: str
+) -> int:
     """
     Update agency by owner_id
 
@@ -147,4 +158,8 @@ def update_agency_by_owner_id(db: SessionLocal, owner_id: str, name: str, addres
     :param phone: phone value
     :return: int
     """
-    return db.query(Agency).filter_by(owner_id=owner_id).update({"name": name, "address": address, "phone": phone})
+    return (
+        db.query(Agency)
+        .filter_by(owner_id=owner_id)
+        .update({"name": name, "address": address, "phone": phone})
+    )

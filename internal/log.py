@@ -5,9 +5,8 @@ from logging.config import fileConfig
 
 import pytz
 
-print('check dir exists')
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+if not os.path.exists("logs"):
+    os.makedirs("logs")
 
 fileConfig("./configs/logging.cfg")
 

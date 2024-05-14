@@ -6,16 +6,38 @@ from fastapi.responses import JSONResponse, HTMLResponse
 
 from internal.app_config import mail_config
 from internal.html_msg import html_ok_msg, html_ng_msg
-from internal.jwt_auth import create_access_token, create_refresh_token, auth, get_info_from_refresh_token, \
-    oauth2_scheme
+from internal.jwt_auth import (
+    create_access_token,
+    create_refresh_token,
+    auth,
+    get_info_from_refresh_token,
+    oauth2_scheme,
+)
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from internal.utils import verify_password, generate_hash, send_mail, get_password_hash
-from messages.jwt_auth import AccessRefreshTokenMsg, SQLIntegrityErrorMsg, TokenEmailNotExistsMsg, \
-    TokenRefreshNotExistsMsg, AccessTokenMsg
-from messages.user import LoginFailMsg, UserNotFoundMsg, UserPasswordNotMatchMsg, UserLoginRequest, UserCreateMsg, \
-    UserResendMsg, UserCreateFailMsg, UserEmailDuplicateMsg, UserCreateRequest, UserResendFailMsg, \
-    UserEmailRequest, UserEmailConfirmMsg, InvalidUuidMsg
+from messages.jwt_auth import (
+    AccessRefreshTokenMsg,
+    SQLIntegrityErrorMsg,
+    TokenEmailNotExistsMsg,
+    TokenRefreshNotExistsMsg,
+    AccessTokenMsg,
+)
+from messages.user import (
+    LoginFailMsg,
+    UserNotFoundMsg,
+    UserPasswordNotMatchMsg,
+    UserLoginRequest,
+    UserCreateMsg,
+    UserResendMsg,
+    UserCreateFailMsg,
+    UserEmailDuplicateMsg,
+    UserCreateRequest,
+    UserResendFailMsg,
+    UserEmailRequest,
+    UserEmailConfirmMsg,
+    InvalidUuidMsg,
+)
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
 from models.user_check import make_user_check, get_user_check_by_email
 
@@ -29,7 +51,9 @@ async def read_users(db: SessionLocal = Depends(get_db)):
 
 
 @router.post("/delete")
-async def delete_user_by_email_api(req: UserEmailRequest, db: SessionLocal = Depends(get_db)):
+async def delete_user_by_email_api(
+    req: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
     """
     사용자 삭제
 
@@ -60,7 +84,9 @@ async def delete_user_by_email_api(req: UserEmailRequest, db: SessionLocal = Dep
 @router.post(
     "/refresh",
 )
-async def refresh_token_api(db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def refresh_token_api(
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     logger.info(f">>> refresh_token_api: {token}")
     try:
         info = get_info_from_refresh_token(token)

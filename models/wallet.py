@@ -7,12 +7,14 @@ from internal.utils import generate_hash, exception_handler
 
 
 class Wallet(Base):
-    __tablename__ = 'wallets'
+    __tablename__ = "wallets"
 
     wid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
-    owner_id = Column(String(64, collation="latin1_swedish_ci"), ForeignKey('users.uid'))
+    owner_id = Column(
+        String(64, collation="latin1_swedish_ci"), ForeignKey("users.uid")
+    )
     address = Column(String(42, collation="latin1_swedish_ci"), index=True)
-    enable = Column(String(1, collation="latin1_swedish_ci"), default='Y')
+    enable = Column(String(1, collation="latin1_swedish_ci"), default="Y")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -102,7 +104,13 @@ def get_wallets(db: SessionLocal, offset: int = 0, limit: int = 50) -> Wallet:
     :param limit: limit value
     :return: Wallet
     """
-    return db.query(Wallet).order_by(Wallet.created_at.desc()).offset(offset).limit(limit).all()
+    return (
+        db.query(Wallet)
+        .order_by(Wallet.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @exception_handler

@@ -44,7 +44,7 @@ class UserCreateRequest(BaseModel):
                 "checker": "test",
                 "agreement1": "Y",
                 "agreement2": "Y",
-                "agreement3": "Y"
+                "agreement3": "Y",
             }
         }
 
@@ -53,11 +53,7 @@ class USerCreateRequestV2(BaseModel):
     data: str
 
     class Config:
-        schema_extra = {
-            "example": {
-                "data": "test"
-            }
-        }
+        schema_extra = {"example": {"data": "test"}}
 
 
 class UserUpdateRequest(BaseModel):
@@ -81,7 +77,7 @@ class UserUpdateRequest(BaseModel):
                 "password": "test",
                 "email": "test@test.com",
                 "name": "test",
-                "email_confirm": "Y"
+                "email_confirm": "Y",
             }
         }
 

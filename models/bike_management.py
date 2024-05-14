@@ -10,7 +10,8 @@ class BikeManagement(Base):
     """
     BikeManagement Model - View
     """
-    __tablename__ = 'bike_management'
+
+    __tablename__ = "bike_management"
 
     bid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
     bike_no = Column(String(10), index=True)
@@ -61,7 +62,9 @@ def get_bike_management_by_bike_no(db: SessionLocal, bike_no: str):
 
 
 @exception_handler
-def get_bike_management_by_owner_id(db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50) -> list:
+def get_bike_management_by_owner_id(
+    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+) -> list:
     """
     Get bike management by owner_id
 
@@ -71,4 +74,10 @@ def get_bike_management_by_owner_id(db: SessionLocal, owner_id: str, offset: int
     :param limit: limit value
     :return: list
     """
-    return db.query(BikeManagement).filter_by(owner_id=owner_id).offset(offset).limit(limit).all()
+    return (
+        db.query(BikeManagement)
+        .filter_by(owner_id=owner_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )

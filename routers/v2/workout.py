@@ -3,26 +3,43 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends
 
-from internal.exceptions import UserNotExistsException, BikeNotExistsException, LastWorkoutNotExistsException, \
-    LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException
+from internal.exceptions import (
+    UserNotExistsException,
+    BikeNotExistsException,
+    LastWorkoutNotExistsException,
+    LastWorkoutIdNotMatchException,
+    WorkoutLastOwnerNotMatchException,
+)
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, decode_data_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from messages.workout import WorkoutCreateMsg, WorkoutGetRequest, \
-    WorkoutGetDurationRequest, WorkoutDataRequest
+from messages.workout import (
+    WorkoutCreateMsg,
+    WorkoutGetRequest,
+    WorkoutGetDurationRequest,
+    WorkoutDataRequest,
+)
 from models.bike import get_bike_by_bike_no
 from models.last_workout import get_last_workout_by_owner_id
 from models.user import get_user_by_email
-from models.workout import get_workout_by_owner_id, make_workout, get_workout_by_date_and_owner_id, get_workout_by_wid, \
-    get_workout_duration_by_date_and_owner_id
+from models.workout import (
+    get_workout_by_owner_id,
+    make_workout,
+    get_workout_by_date_and_owner_id,
+    get_workout_by_wid,
+    get_workout_duration_by_date_and_owner_id,
+)
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
 router = APIRouter()
 
 
 @router.post("/create")
-async def post_workout_create_api(daily: WorkoutDataRequest, db: SessionLocal = Depends(get_db),
-                                  token: str = Depends(oauth2_scheme)):
+async def post_workout_create_api(
+    daily: WorkoutDataRequest,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
     """
     workout을 시작하는 API
 
@@ -70,8 +87,11 @@ async def post_workout_create_api(daily: WorkoutDataRequest, db: SessionLocal = 
 
 
 @router.post("/keep")
-async def post_workout_keep_api(daily: WorkoutDataRequest, db: SessionLocal = Depends(get_db),
-                                token: str = Depends(oauth2_scheme)):
+async def post_workout_keep_api(
+    daily: WorkoutDataRequest,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
     """
     workout을 유지하는 API
 
@@ -125,8 +145,11 @@ async def post_workout_keep_api(daily: WorkoutDataRequest, db: SessionLocal = De
 
 
 @router.post("/get_workout")
-async def post_get_workout_api(daily: WorkoutGetRequest, db: SessionLocal = Depends(get_db),
-                               token: str = Depends(oauth2_scheme)):
+async def post_get_workout_api(
+    daily: WorkoutGetRequest,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
     """
     workout을 조회하는 API
 
@@ -156,8 +179,11 @@ async def post_get_workout_api(daily: WorkoutGetRequest, db: SessionLocal = Depe
 
 
 @router.post("/get_workout_duration")
-async def post_get_workout_duration_api(daily: WorkoutGetDurationRequest, db: SessionLocal = Depends(get_db),
-                                        token: str = Depends(oauth2_scheme)):
+async def post_get_workout_duration_api(
+    daily: WorkoutGetDurationRequest,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
     """
     workout duration을 조회하는 API
     시작 날자와 종료 날자를 받아서 조회한다.
@@ -182,7 +208,9 @@ async def post_get_workout_duration_api(daily: WorkoutGetDurationRequest, db: Se
 
         db_user = get_user_by_email(db, email)
 
-        db_workout = get_workout_duration_by_date_and_owner_id(db, db_user.uid, start_date, end_date)
+        db_workout = get_workout_duration_by_date_and_owner_id(
+            db, db_user.uid, start_date, end_date
+        )
         logger.info(f"post_get_workout_duration_api db_workout: {db_workout}")
         return db_workout
 
@@ -191,7 +219,9 @@ async def post_get_workout_duration_api(daily: WorkoutGetDurationRequest, db: Se
 
 
 @router.get("/get_workout_sum")
-async def get_workout_duration_api(db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def get_workout_duration_api(
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     """
     하루의 workout duration을 조회하는 API
     """
@@ -211,7 +241,9 @@ async def get_workout_duration_api(db: SessionLocal = Depends(get_db), token: st
 
 
 @router.get("/get_workout_by_date_and_owner_id")
-async def get_workout_by_date_and_owner_id_api(db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def get_workout_by_date_and_owner_id_api(
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     logger.info(f">>> get_workout_by_date_and_owner_id_api start")
 
     try:

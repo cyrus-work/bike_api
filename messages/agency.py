@@ -18,7 +18,7 @@ class AgencyInfo(sqlalchemy_to_pydantic(Agency)):
                 "phone": "test",
                 "status": 0,
                 "created_at": "2021-07-06 15:00:00",
-                "updated_at": "2021-07-06 15:00:00"
+                "updated_at": "2021-07-06 15:00:00",
             }
         }
 
@@ -35,7 +35,7 @@ class AgencyCreateRequest(BaseModel):
                 "owner_email": "yarang+v1@gmail.com",
                 "name": "t_agency1",
                 "address": "test",
-                "phone": "test"
+                "phone": "test",
             }
         }
 

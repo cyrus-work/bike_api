@@ -10,8 +10,12 @@ from models.wallet import make_wallet, get_wallets, get_wallet_by_owner_id
 router = APIRouter()
 
 
-@router.post("/create", )
-async def post_wallets_create_api(wallet: WalletMsg, db: SessionLocal = Depends(get_db)):
+@router.post(
+    "/create",
+)
+async def post_wallets_create_api(
+    wallet: WalletMsg, db: SessionLocal = Depends(get_db)
+):
     """
     Create wallet
 
@@ -38,7 +42,7 @@ async def post_wallets_create_api(wallet: WalletMsg, db: SessionLocal = Depends(
         logger.info(f">>> post_wallets_create_api end")
 
 
-@router.get('/get')
+@router.get("/get")
 async def get_wallets_api(db: SessionLocal = Depends(get_db)):
     """
     Get all wallets
@@ -57,7 +61,9 @@ async def get_wallets_api(db: SessionLocal = Depends(get_db)):
 
 
 @router.post("/get_own")
-async def get_wallets_own_api(db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def get_wallets_own_api(
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     """
     Get wallet by owner_id
 

@@ -8,6 +8,7 @@ class Message(BaseModel):
     code: int
     content: str
     """
+
     code: int
     content: str
 
@@ -18,4 +19,5 @@ class ExceptionMsg(BaseModel):
 
     detail: str
     """
+
     detail: str

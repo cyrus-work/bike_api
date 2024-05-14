@@ -10,6 +10,7 @@ class WorkoutCreateRequest(BaseModel):
     bike_serial: 자전거 시리얼
     ptype: point type (0: token, 1: point)
     """
+
     bike_serial: str
     ptype: int
 

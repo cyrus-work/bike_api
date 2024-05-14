@@ -17,7 +17,7 @@ class BikeCreateRequest(BaseModel):
                 "cpu_version": "1.0.0",
                 "board_version": "1.0.0",
                 "owner_email": "yarang+v1@gmail.com",
-                "agency_name": "t_agency1"
+                "agency_name": "t_agency1",
             }
         }
 

@@ -25,7 +25,7 @@ class AccessRefreshTokenMsg(BaseModel):
             "example": {
                 "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InlhcmFuZ0BnbWFpbC5jb20iLCJleHAiOjE2ODEyOTE1MTV9.xmMUv1mdyezr-uLahm_fW97R_Jrvx1R05jlGj_YjQz8",
                 "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InlhcmFuZ0BnbWFpbC5jb20iLCJleHAiOjE2ODEzNzQzMTV9.ogGGzNPZYtFUHLsyE36gY8qYc3YqiBR3UrC_vDLoSNo",
-                "token_type": "bearer"
+                "token_type": "bearer",
             }
         }
 
@@ -38,7 +38,7 @@ class AccessTokenMsg(BaseModel):
         schema_extra = {
             "example": {
                 "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InlhcmFuZ0BnbWFpbC5jb20iLCJleHAiOjE2ODEyOTE1MTV9.xmMUv1mdyezr-uLahm_fW97R_Jrvx1R05jlGj_YjQz8",
-                "token_type": "bearer"
+                "token_type": "bearer",
             }
         }
 
@@ -62,7 +62,7 @@ class LoginTokenMsg(AccessRefreshTokenMsg, RefreshTokenMsg):
             "example": {
                 "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InlhcmFuZ0BnbWFpbC5jb20iLCJleHAiOjE2ODEzNzQzMTV9.ogGGzNPZYtFUHLsyE36gY8qYc3YqiBR3UrC_vDLoSNo",
                 "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InlhcmFuZ0BnbWFpbC5jb20iLCJleHAiOjE2ODEyOTE1MTV9.xmMUv1mdyezr-uLahm_fW97R_Jrvx1R05jlGj_YjQz8",
-                "token_type": "bearer"
+                "token_type": "bearer",
             }
         }
 
@@ -74,11 +74,7 @@ class VerifyTokenMsg(BaseModel):
 
     class Config:
         schema_extra = {
-            "example": {
-                "code": 200,
-                "content": "Token is valid",
-                "is_verify": True
-            }
+            "example": {"code": 200, "content": "Token is valid", "is_verify": True}
         }
 
 
@@ -93,83 +89,45 @@ class UserInfoJWT(BaseModel):
 
 class TokenExpiredMsg(Message):
     class Config:
-        schema_extra = {
-            "example": {
-                "code": 451,
-                "content": "Token is expired"
-            }
-        }
+        schema_extra = {"example": {"code": 451, "content": "Token is expired"}}
 
 
 class TokenInvalidMsg(Message):
     class Config:
-        schema_extra = {
-            "example": {
-                "code": 452,
-                "content": "Token is invalid"
-            }
-        }
+        schema_extra = {"example": {"code": 452, "content": "Token is invalid"}}
 
 
 class SQLIntegrityErrorMsg(ExceptionMsg):
     class Config:
         schema_extra = {
-            "example": {
-                "detail": {
-                    "code": 701,
-                    "content": "Integrity Error"
-                }
-            }
+            "example": {"detail": {"code": 701, "content": "Integrity Error"}}
         }
 
 
 class TokenEmailNotExistsMsg(Message):
     class Config:
-        schema_extra = {
-            "example": {
-                "code": 453,
-                "content": "email is not exist"
-            }
-        }
+        schema_extra = {"example": {"code": 453, "content": "email is not exist"}}
 
 
 class TokenRefreshNotExistsMsg(Message):
     class Config:
         schema_extra = {
-            "example": {
-                "code": 454,
-                "content": "refresh token is not exist"
-            }
+            "example": {"code": 454, "content": "refresh token is not exist"}
         }
 
 
 class TokenVerifyFailedMsg(Message):
     class Config:
-        schema_extra = {
-            "example": {
-                "code": 455,
-                "content": "Token verify failed"
-            }
-        }
+        schema_extra = {"example": {"code": 455, "content": "Token verify failed"}}
 
 
 class InvalidSignatureErrorMsg(ExceptionMsg):
     class Config:
         schema_extra = {
-            "example": {
-                "detail": {
-                    "code": 456,
-                    "content": "Signature Expired Error"
-                }
-            }
+            "example": {"detail": {"code": 456, "content": "Signature Expired Error"}}
         }
 
 
 class DataErrorMsg(Message):
     class Config:
-        schema_extra = {
-            "example": {
-                "code": 457,
-                "content": "Data Error"
-            }
-        }
+        schema_extra = {"example": {"code": 457, "content": "Data Error"}}

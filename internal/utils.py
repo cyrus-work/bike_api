@@ -52,7 +52,9 @@ def exception_handler(func):
             # SQLAlchemy의 일반적인 오류 처리
             logger.error(f"Database error: {traceback.format_exc()}")
             # FastAPI의 HTTPException을 사용하여 클라이언트에 적절한 HTTP 상태 코드와 메시지 전달
-            raise SQLAlchemyError(status_code=500, detail="Database error, please try again later.")
+            raise SQLAlchemyError(
+                status_code=500, detail="Database error, please try again later."
+            )
 
         except Exception as _:
             # 그 외 모든 예외 처리
@@ -75,10 +77,10 @@ def send_mail(mailer, uid, checker):
 
 
 def auth_email_send(mailer, receiver, title, content):
-    logger.info('>>> auth_email_send start')
-    logger.info(f'receiver: {receiver}')
-    logger.info(f'title: {title}')
-    logger.info(f'content: {content}')
+    logger.info(">>> auth_email_send start")
+    logger.info(f"receiver: {receiver}")
+    logger.info(f"title: {title}")
+    logger.info(f"content: {content}")
 
     s = smtplib.SMTP("smtp.gmail.com", 587)
     s.starttls()
@@ -99,6 +101,7 @@ def auth_email_send(mailer, receiver, title, content):
 
 
 def model_to_dict(model):
-    """모델 인스턴스를 딕셔너리로 변환합니다."""
-    return {c.key: getattr(model, c.key)
-            for c in inspect(model).mapper.column_attrs}
+    """
+    모델 인스턴스를 딕셔너리로 변환합니다.
+    """
+    return {c.key: getattr(model, c.key) for c in inspect(model).mapper.column_attrs}

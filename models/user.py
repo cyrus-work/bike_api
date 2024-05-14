@@ -9,17 +9,17 @@ from internal.utils import get_password_hash, generate_hash, exception_handler
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     uid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
     type = Column(Integer, default=0)
     name = Column(String(100, collation="utf8mb4_unicode_ci"))
     email = Column(String(120, collation="latin1_swedish_ci"), unique=True)
     hashed_pwd = Column(String(60, collation="latin1_swedish_ci"))
-    email_verified = Column(String(1), default='N')
-    agreement1 = Column(String(1, collation="latin1_swedish_ci"), default='N')
-    agreement2 = Column(String(1, collation="latin1_swedish_ci"), default='N')
-    agreement3 = Column(String(1, collation="latin1_swedish_ci"), default='N')
+    email_verified = Column(String(1), default="N")
+    agreement1 = Column(String(1, collation="latin1_swedish_ci"), default="N")
+    agreement2 = Column(String(1, collation="latin1_swedish_ci"), default="N")
+    agreement3 = Column(String(1, collation="latin1_swedish_ci"), default="N")
     status = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
@@ -46,7 +46,9 @@ def is_uid_duplicate(uid: str) -> bool:
 
 
 @exception_handler
-def make_user(name: str or None, email: str, password: str or None, email_verified: str = 'N') -> User:
+def make_user(
+    name: str or None, email: str, password: str or None, email_verified: str = "N"
+) -> User:
     """
     Make user
 
@@ -66,7 +68,13 @@ def make_user(name: str or None, email: str, password: str or None, email_verifi
         hashed_pwd = get_password_hash(password)
     else:
         hashed_pwd = None
-    return User(uid=uid, name=name, email=email, hashed_pwd=hashed_pwd, email_verified=email_verified)
+    return User(
+        uid=uid,
+        name=name,
+        email=email,
+        hashed_pwd=hashed_pwd,
+        email_verified=email_verified,
+    )
 
 
 ### database operations ###
@@ -91,7 +99,9 @@ def get_user_exist_by_email(db: SessionLocal, email: str):
     :param email: user email
     :return: bool
     """
-    return db.query(User).filter(User.email == email, User.email_verified == 'Y').first()
+    return (
+        db.query(User).filter(User.email == email, User.email_verified == "Y").first()
+    )
 
 
 @exception_handler
@@ -106,7 +116,13 @@ def get_users(db: SessionLocal, offset: int = 0, limit: int = 50) -> User:
     """
     logger.info(">>> get_user_check_by_id start.")
     try:
-        return db.query(User).order_by(User.created_at.desc()).offset(offset).limit(limit).all()
+        return (
+            db.query(User)
+            .order_by(User.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
     finally:
         logger.info(">>> get_user_check_by_id end.")
@@ -159,7 +175,7 @@ def update_user_email_verified(db: SessionLocal, email: str) -> None:
     logger.info(">>> update_user_email_verified start.")
     try:
         user = db.query(User).filter(User.email == email).first()
-        user.email_verified = 'Y'
+        user.email_verified = "Y"
         db.commit()
 
     finally:
@@ -185,7 +201,9 @@ def update_user_status(db: SessionLocal, uid: str, status: int) -> None:
         logger.info(">>> update_user_status end.")
 
 
-def update_user_agreement(db: SessionLocal, uid: str, agreement1: str, agreement2: str, agreement3: str) -> None:
+def update_user_agreement(
+    db: SessionLocal, uid: str, agreement1: str, agreement2: str, agreement3: str
+) -> None:
     """
     사용자의 약관 동의를 변경한다.
 

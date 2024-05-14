@@ -12,8 +12,12 @@ from models.user import get_user_by_email
 router = APIRouter()
 
 
-@router.post("/create", )
-async def post_create_bike_api(bike: BikeCreateRequest, db: SessionLocal = Depends(SessionLocal)):
+@router.post(
+    "/create",
+)
+async def post_create_bike_api(
+    bike: BikeCreateRequest, db: SessionLocal = Depends(SessionLocal)
+):
     """
     Create bike
 
@@ -51,8 +55,10 @@ async def post_create_bike_api(bike: BikeCreateRequest, db: SessionLocal = Depen
         logger.info(f">>> post_create_bike_api end")
 
 
-@router.get('/get_own')
-async def get_bikes_own_api(db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)):
+@router.get("/get_own")
+async def get_bikes_own_api(
+    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+):
     """
     Get all bikes
 
@@ -73,8 +79,10 @@ async def get_bikes_own_api(db: SessionLocal = Depends(SessionLocal), token: str
         logger.info(f">>> get_bikes_own_api end")
 
 
-@router.get('/get_agency')
-async def get_bikes_agency_api(db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)):
+@router.get("/get_agency")
+async def get_bikes_agency_api(
+    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+):
     """
     Get all bikes
 

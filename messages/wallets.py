@@ -17,7 +17,7 @@ class WalletInfo(sqlalchemy_to_pydantic(Wallet)):
                 "address": "0xd53eb5203e367bbdd4f72338938224881fc501ab",
                 "enable": "Y",
                 "created_at": "2021-07-06 15:00:00",
-                "updated_at": "2021-07-06 15:00:00"
+                "updated_at": "2021-07-06 15:00:00",
             }
         }
 

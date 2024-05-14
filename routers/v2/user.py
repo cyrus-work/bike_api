@@ -3,26 +3,48 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
 
 from internal.app_config import mail_config
-from internal.exceptions import UserExistsException, UserEmailNotConfirmException, UserNotExistsException, \
-    UserCheckerNotExistException, UserCheckerNotMatchException, UserEmailNotExistException, \
-    JWTRefreshTokenNotExistException, UserPasswordNotMatchException
+from internal.exceptions import (
+    UserExistsException,
+    UserEmailNotConfirmException,
+    UserNotExistsException,
+    UserCheckerNotExistException,
+    UserCheckerNotMatchException,
+    UserEmailNotExistException,
+    JWTRefreshTokenNotExistException,
+    UserPasswordNotMatchException,
+)
 from internal.html_msg import html_ok_msg, html_ng_msg
-from internal.jwt_auth import get_info_from_refresh_token, \
-    oauth2_scheme, encoded_data_to_jwt, decode_data_from_jwt, token_make_function, access_token_make_function
+from internal.jwt_auth import (
+    get_info_from_refresh_token,
+    oauth2_scheme,
+    encoded_data_to_jwt,
+    decode_data_from_jwt,
+    token_make_function,
+    access_token_make_function,
+)
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from internal.utils import verify_password, send_mail, get_password_hash, generate_hash
 from messages.jwt_auth import AccessRefreshTokenMsg, AccessTokenMsg
-from messages.user import UserLoginRequest, UserCreateMsg, \
-    UserResendMsg, UserCreateRequest, UserEmailRequest
+from messages.user import (
+    UserLoginRequest,
+    UserCreateMsg,
+    UserResendMsg,
+    UserCreateRequest,
+    UserEmailRequest,
+)
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
 from models.user_check import make_user_check, get_user_check_by_email
 
 router = APIRouter()
 
 
-@router.post("/login", )
-async def post_login_user_api(request: Request, user: UserLoginRequest, db: SessionLocal = Depends(get_db)):
+@router.post(
+    "/login",
+)
+async def post_login_user_api(
+    request: Request, user: UserLoginRequest, db: SessionLocal = Depends(get_db)
+):
     """
     Login user
 
@@ -54,8 +76,12 @@ async def post_login_user_api(request: Request, user: UserLoginRequest, db: Sess
         logger.info(f">>> post_login_user_api end")
 
 
-@router.post("/create", )
-async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depends(get_db)):
+@router.post(
+    "/create",
+)
+async def post_create_user_api(
+    user: UserCreateRequest, db: SessionLocal = Depends(get_db)
+):
     """
     사용자 생성<p>
 
@@ -76,7 +102,9 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
         agree2 = user.agreement2
         agree3 = user.agreement3
 
-        logger.info(f"post_create_user_api: {name}, {email}, {password}, {checker}, {agree1}, {agree2}, {agree3}")
+        logger.info(
+            f"post_create_user_api: {name}, {email}, {password}, {checker}, {agree1}, {agree2}, {agree3}"
+        )
 
         # 사용자 이메일로 정보를 조회한다.
         db_user = get_user_by_email(db, user.email)
@@ -121,8 +149,12 @@ async def post_create_user_api(user: UserCreateRequest, db: SessionLocal = Depen
         logger.info(f">>> post_create_user_api end")
 
 
-@router.post("/email_send", )
-async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = Depends(get_db)):
+@router.post(
+    "/email_send",
+)
+async def post_user_email_send_api(
+    data: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
     """
     이메일 인증을 요청함.
 
@@ -155,7 +187,11 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
         db.refresh(db_user)
         logger.info(f"post_user_email_send_api db_user: {db_user}")
 
-        user_json = {"email": email, "uid": db_user.uid, "created_at": db_user.created_at.isoformat()}
+        user_json = {
+            "email": email,
+            "uid": db_user.uid,
+            "created_at": db_user.created_at.isoformat(),
+        }
 
         db_user = get_user_exist_by_email(db, email)
         logger.info(f"post_user_email_send_api: {db_user}")
@@ -188,7 +224,9 @@ async def post_user_email_send_api(data: UserEmailRequest, db: SessionLocal = De
 @router.get(
     "/email_confirm",
 )
-async def email_confirm_user_api(email: str, checker: str, db: SessionLocal = Depends(get_db)):
+async def email_confirm_user_api(
+    email: str, checker: str, db: SessionLocal = Depends(get_db)
+):
     """
     이메일 인증
 
@@ -206,7 +244,7 @@ async def email_confirm_user_api(email: str, checker: str, db: SessionLocal = De
 
         decoded_data = decode_data_from_jwt(checker)
         logger.info(f"email_confirm_user_api decoded_data: {decoded_data}")
-        check_key = decoded_data['checker']
+        check_key = decoded_data["checker"]
 
         db_check = get_user_check_by_email(db, email)
         if db_check is None:
@@ -230,8 +268,12 @@ async def email_confirm_user_api(email: str, checker: str, db: SessionLocal = De
         logger.info(f">>> email_confirm_user_api end")
 
 
-@router.post("/email_confirm_check", )
-async def email_confirm_check_user_api(data: UserEmailRequest, db: SessionLocal = Depends(get_db)):
+@router.post(
+    "/email_confirm_check",
+)
+async def email_confirm_check_user_api(
+    data: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
     """
     이메일 인증 확인
 
@@ -259,7 +301,9 @@ async def email_confirm_check_user_api(data: UserEmailRequest, db: SessionLocal 
 
 
 @router.post("/update")
-async def update_user_by_email_api(req: UserCreateRequest, db: SessionLocal = Depends(get_db)):
+async def update_user_by_email_api(
+    req: UserCreateRequest, db: SessionLocal = Depends(get_db)
+):
     """
     사용자 업데이트
 
@@ -297,7 +341,9 @@ async def read_users(db: SessionLocal = Depends(get_db)):
 
 
 @router.post("/delete")
-async def delete_user_by_email_api(req: UserEmailRequest, db: SessionLocal = Depends(get_db)):
+async def delete_user_by_email_api(
+    req: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
     """
     사용자 삭제
 
@@ -326,7 +372,9 @@ async def delete_user_by_email_api(req: UserEmailRequest, db: SessionLocal = Dep
 @router.post(
     "/refresh",
 )
-async def refresh_token_api(db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def refresh_token_api(
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     logger.info(f">>> refresh_token_api: {token}")
     try:
         info = get_info_from_refresh_token(token)

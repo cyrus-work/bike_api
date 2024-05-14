@@ -1,6 +1,14 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, String, ForeignKey, Float, DECIMAL, SmallInteger
+from sqlalchemy import (
+    Column,
+    DateTime,
+    String,
+    ForeignKey,
+    Float,
+    DECIMAL,
+    SmallInteger,
+)
 from sqlalchemy.orm.exc import NoResultFound
 
 from internal.mysql_db import Base, SessionLocal
@@ -36,9 +44,12 @@ class TransactionHistory(Base):
     created_at: created time
     updated_at: updated time
     """
+
     __tablename__ = "transaction_history"
 
-    tid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True, index=True)
+    tid = Column(
+        String(64, collation="latin1_swedish_ci"), primary_key=True, index=True
+    )
     wid = Column(String(64, collation="latin1_swedish_ci"), ForeignKey("wallets.wid"))
     amount_req = Column(DECIMAL(36, 10))
     amount_res = Column(DECIMAL(36, 10))
@@ -75,9 +86,19 @@ def is_tid_duplicate(tid: str) -> bool:
 
 
 @exception_handler
-def make_transaction_history(wid: str, amount_req: float, amount_res: float, fee_operation: float, deposit_at: datetime,
-                             result_at: datetime, txn_completed_at: datetime, operation_at: datetime, txn_hash: str,
-                             msg: str, status: int) -> TransactionHistory:
+def make_transaction_history(
+    wid: str,
+    amount_req: float,
+    amount_res: float,
+    fee_operation: float,
+    deposit_at: datetime,
+    result_at: datetime,
+    txn_completed_at: datetime,
+    operation_at: datetime,
+    txn_hash: str,
+    msg: str,
+    status: int,
+) -> TransactionHistory:
     """
     Make transaction history
 
@@ -107,10 +128,20 @@ def make_transaction_history(wid: str, amount_req: float, amount_res: float, fee
         if not is_tid_duplicate(tid):
             break
 
-    return TransactionHistory(tid=tid, wid=wid, amount_req=amount_req, amount_res=amount_res,
-                              fee_operation=fee_operation,
-                              deposit_at=deposit_at, result_at=result_at, txn_completed_at=txn_completed_at,
-                              operation_at=operation_at, txn_hash=txn_hash, msg=msg, status=status)
+    return TransactionHistory(
+        tid=tid,
+        wid=wid,
+        amount_req=amount_req,
+        amount_res=amount_res,
+        fee_operation=fee_operation,
+        deposit_at=deposit_at,
+        result_at=result_at,
+        txn_completed_at=txn_completed_at,
+        operation_at=operation_at,
+        txn_hash=txn_hash,
+        msg=msg,
+        status=status,
+    )
 
 
 @exception_handler
@@ -126,7 +157,9 @@ def get_transaction_history(db: SessionLocal, tid: str) -> TransactionHistory:
 
 
 @exception_handler
-def get_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str) -> TransactionHistory:
+def get_transaction_history_by_txn_hash(
+    db: SessionLocal, txn_hash: str
+) -> TransactionHistory:
     """
     Get transaction history by txn_hash
 
@@ -138,8 +171,9 @@ def get_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str) -> Tran
 
 
 @exception_handler
-def get_transaction_history_by_wallet_id(db: SessionLocal, wid: str, offset: int = 0,
-                                         limit: int = 50) -> TransactionHistory:
+def get_transaction_history_by_wallet_id(
+    db: SessionLocal, wid: str, offset: int = 0, limit: int = 50
+) -> TransactionHistory:
     """
     Get transaction history by wallet id
 
@@ -149,12 +183,19 @@ def get_transaction_history_by_wallet_id(db: SessionLocal, wid: str, offset: int
     :param limit: limit value
     :return: TransactionHistory
     """
-    return db.query(TransactionHistory).filter_by(wid=wid).offset(offset).limit(limit).all()
+    return (
+        db.query(TransactionHistory)
+        .filter_by(wid=wid)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @exception_handler
-def get_transaction_history_by_txn_completed_at_later_than(db: SessionLocal, txn_completed_at: datetime,
-                                                           offset: int = 0, limit: int = 50) -> TransactionHistory:
+def get_transaction_history_by_txn_completed_at_later_than(
+    db: SessionLocal, txn_completed_at: datetime, offset: int = 0, limit: int = 50
+) -> TransactionHistory:
     """
     Get transaction history by txn_completed_at later than
 
@@ -164,13 +205,19 @@ def get_transaction_history_by_txn_completed_at_later_than(db: SessionLocal, txn
     :param limit: limit value
     :return: TransactionHistory
     """
-    return db.query(TransactionHistory).filter(TransactionHistory.txn_completed_at > txn_completed_at).offset(
-        offset).limit(limit).all()
+    return (
+        db.query(TransactionHistory)
+        .filter(TransactionHistory.txn_completed_at > txn_completed_at)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @exception_handler
-def get_transaction_history_by_txn_completed_at_earlier_than(db: SessionLocal, txn_completed_at: datetime,
-                                                             offset: int = 0, limit: int = 50) -> TransactionHistory:
+def get_transaction_history_by_txn_completed_at_earlier_than(
+    db: SessionLocal, txn_completed_at: datetime, offset: int = 0, limit: int = 50
+) -> TransactionHistory:
     """
     Get transaction history by txn_completed_at earlier than
 
@@ -180,12 +227,19 @@ def get_transaction_history_by_txn_completed_at_earlier_than(db: SessionLocal, t
     :param limit: limit value
     :return: TransactionHistory
     """
-    return db.query(TransactionHistory).filter(TransactionHistory.txn_completed_at < txn_completed_at).offset(
-        offset).limit(limit).all()
+    return (
+        db.query(TransactionHistory)
+        .filter(TransactionHistory.txn_completed_at < txn_completed_at)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @exception_handler
-def update_transaction_history_by_tid(db: SessionLocal, tid: int, **kwargs) -> TransactionHistory:
+def update_transaction_history_by_tid(
+    db: SessionLocal, tid: int, **kwargs
+) -> TransactionHistory:
     """
     Update transaction history by tid
 
@@ -206,13 +260,17 @@ def update_transaction_history_by_tid(db: SessionLocal, tid: int, **kwargs) -> T
         if hasattr(transaction_history, key):
             setattr(transaction_history, key, value)
         else:
-            raise AttributeError(f"{key} is not a valid attribute of TransactionHistory")
+            raise AttributeError(
+                f"{key} is not a valid attribute of TransactionHistory"
+            )
 
     return transaction_history
 
 
 @exception_handler
-def update_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str, **kwargs) -> TransactionHistory:
+def update_transaction_history_by_txn_hash(
+    db: SessionLocal, txn_hash: str, **kwargs
+) -> TransactionHistory:
     """
     Update transaction history by txn_hash
 
@@ -221,7 +279,9 @@ def update_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str, **kw
     :param kwargs: update values
     :return: TransactionHistory
     """
-    transaction_history = db.query(TransactionHistory).filter_by(txn_hash=txn_hash).first()
+    transaction_history = (
+        db.query(TransactionHistory).filter_by(txn_hash=txn_hash).first()
+    )
 
     if transaction_history is None:
         raise NoResultFound(f"No TransactionHistory found with txn_hash={txn_hash}")
@@ -230,7 +290,9 @@ def update_transaction_history_by_txn_hash(db: SessionLocal, txn_hash: str, **kw
         if hasattr(transaction_history, key):
             setattr(transaction_history, key, value)
         else:
-            raise AttributeError(f"{key} is not a valid attribute of TransactionHistory")
+            raise AttributeError(
+                f"{key} is not a valid attribute of TransactionHistory"
+            )
 
     return transaction_history
 
