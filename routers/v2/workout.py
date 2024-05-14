@@ -4,6 +4,8 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from internal.exceptions import UserNotExistsException, BikeNotExistsException, LastWorkoutNotExistsException, \
+    LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, decode_data_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
@@ -47,15 +49,11 @@ async def post_workout_create_api(daily: WorkoutDataRequest, db: SessionLocal = 
         # 로그인한 사용자의 정보를 가져온다.
         db_user = get_user_by_email(db, email)
         if db_user is None:
-            msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_workout_create_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise UserNotExistsException
 
         db_bike = get_bike_by_bike_no(db, bike_serial)
         if db_bike is None:
-            msg = {"code": 462, "content": "Bike not found."}
-            logger.error(f"post_workout_create_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise BikeNotExistsException
 
         logger.info(f"post_workout_create_api: make_daily_production")
         db_daily = make_workout(db_user.uid, db_bike.bid, point_type)
@@ -100,21 +98,14 @@ async def post_workout_keep_api(daily: WorkoutDataRequest, db: SessionLocal = De
 
         db_last_workout = get_last_workout_by_owner_id(db, db_user.uid)
         if db_last_workout is None:
-            logger.info(f"post_workout_keep_api: make_daily_production")
-            msg = {"code": 462, "content": "workout date not found."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise LastWorkoutNotExistsException
         logger.info(f"post_workout_keep_api db_workout: {db_last_workout}")
 
         if wid != db_last_workout.wid:
-            msg = {"code": 462, "content": "workout date not match workout id."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            msg = {"code": 462, "content": "workout date not match user."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise WorkoutLastOwnerNotMatchException
 
         db_workout = get_workout_by_wid(db, db_last_workout.wid)
 

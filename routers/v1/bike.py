@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from internal.exceptions import UserNotExistsException, AgencyNotExistsException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
@@ -11,11 +12,7 @@ from models.user import get_user_by_email
 router = APIRouter()
 
 
-@router.post("/create",
-             responses={
-                 200: {"model": BikeCreateMsg},
-                 461: {"model": BikeManagementFailMsg},
-             }, )
+@router.post("/create", )
 async def post_create_bike_api(bike: BikeCreateRequest, db: SessionLocal = Depends(SessionLocal)):
     """
     Create bike
@@ -35,15 +32,11 @@ async def post_create_bike_api(bike: BikeCreateRequest, db: SessionLocal = Depen
 
         db_owner = get_user_by_email(db, owner_email)
         if db_owner is None:
-            msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_create_bike_api msg: {msg}")
-            return BikeManagementFailMsg(**msg)
+            raise UserNotExistsException
 
         db_agency = get_agency_by_name(db, agency_name)
         if db_agency is None:
-            msg = {"code": 463, "content": "Agency not found."}
-            logger.error(f"post_create_bike_api msg: {msg}")
-            return BikeManagementFailMsg(**msg)
+            raise AgencyNotExistsException
 
         owner_id = db_owner.uid
         agency_id = db_agency.aid
@@ -96,9 +89,7 @@ async def get_bikes_agency_api(db: SessionLocal = Depends(SessionLocal), token: 
 
         db_agencies = get_agency_by_owner_id(db, db_user.uid)
         if db_agencies is None:
-            msg = {"code": 463, "content": "Agency not found."}
-            logger.error(f"get_bikes_agency_api msg: {msg}")
-            return BikeManagementFailMsg(**msg)
+            raise AgencyNotExistsException
 
         db_bikes_list = []
         for db_agency in db_agencies:

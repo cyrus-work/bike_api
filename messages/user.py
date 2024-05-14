@@ -29,8 +29,11 @@ class UserCreateRequest(BaseModel):
     password: str
     checker: str
 
+    agreement1: Optional[str] = None
+    agreement2: Optional[str] = None
+    agreement3: Optional[str] = None
+
     name: Optional[str] = None
-    email_confirm: Optional[str] = "N"
 
     class Config:
         schema_extra = {
@@ -39,6 +42,20 @@ class UserCreateRequest(BaseModel):
                 "email": "test@test.com",
                 "name": "test",
                 "checker": "test",
+                "agreement1": "Y",
+                "agreement2": "Y",
+                "agreement3": "Y"
+            }
+        }
+
+
+class USerCreateRequestV2(BaseModel):
+    data: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "data": "test"
             }
         }
 

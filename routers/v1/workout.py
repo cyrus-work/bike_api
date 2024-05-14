@@ -4,6 +4,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from internal.exceptions import LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
@@ -45,6 +46,7 @@ async def post_workout_create_api(daily: WorkoutCreateRequest, db: SessionLocal 
             logger.error(f"post_workout_create_api msg: {msg}")
             return JSONResponse(status_code=410, content=msg)
 
+        # bike_serial로 bike 정보를 가져온다.
         db_bike = get_bike_by_bike_no(db, bike_serial)
         if db_bike is None:
             msg = {"code": 462, "content": "Bike not found."}
@@ -52,13 +54,13 @@ async def post_workout_create_api(daily: WorkoutCreateRequest, db: SessionLocal 
             return JSONResponse(status_code=410, content=msg)
 
         logger.info(f"post_workout_create_api: make_daily_production")
+        # workout을 생성한다.
         db_daily = make_workout(db_user.uid, db_bike.bid, point_type)
         db.add(db_daily)
-        db.flush()
-        db.refresh(db_daily)
-
-        db.merge(db_daily)
         db.commit()
+
+        db.refresh(db_daily)
+        logger.info(f"post_workout_create_api db_daily: {db_daily}")
 
         return WorkoutCreateMsg(workout_id=db_daily.wid)
 
@@ -98,20 +100,16 @@ async def post_workout_keep_api(daily: WorkoutKeepRequest, db: SessionLocal = De
         logger.info(f"post_workout_keep_api db_workout: {db_last_workout}")
 
         if wid != db_last_workout.wid:
-            msg = {"code": 462, "content": "workout date not match workout id."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            msg = {"code": 462, "content": "workout date not match user."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise WorkoutLastOwnerNotMatchException
 
+        # 마지막 운동 정보를 가져온다.
         db_workout = get_workout_by_wid(db, db_last_workout.wid)
 
         db_workout.energy = Decimal(energy)
         db_workout.calorie = Decimal(calorie)
-        # db_workout.end_time = datetime.now()
 
         db.merge(db_workout)
         db.commit()

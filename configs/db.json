@@ -1,7 +1,7 @@
 {
   "user": "hegsdev",
   "password": "hegs123$%^",
-  "host": "localhost",
+  "host": "bikeapi.cyruslab.io",
   "name": "hegs_bike",
   "port": 3306
 }

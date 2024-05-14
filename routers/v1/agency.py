@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 
+from internal.exceptions import AgencyNotExistsException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
@@ -34,9 +35,7 @@ async def post_create_agency_api(agency: AgencyCreateRequest, db: SessionLocal =
 
         db_owner = get_user_by_email(db, owner_email)
         if db_owner is None:
-            msg = {"code": 462, "content": "User not found."}
-            logger.error(f"post_create_agency_api msg: {msg}")
-            return AgencyManagementFailMsg(**msg)
+            raise AgencyNotExistsException
 
         owner_id = db_owner.uid
 
@@ -68,9 +67,8 @@ async def get_agency_by_owner_api(db: SessionLocal = Depends(SessionLocal), toke
 
         db_agency = get_agency_by_owner_id(db, db_user.uid)
         if db_agency is None:
-            msg = {"code": 463, "content": "Agency not found."}
-            logger.error(f"get_agency_by_owner_api: {msg}")
-            return AgencyManagementFailMsg(**msg)
+            raise AgencyNotExistsException
+
         logger.info(f"get_agency_by_owner_api: {db_agency}")
 
         return [AgencyInfo(**model_to_dict(agency)) for agency in db_agency]

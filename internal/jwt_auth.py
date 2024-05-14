@@ -173,3 +173,31 @@ def get_payload_from_jwt(req: Request, token: str = Depends(oauth2_scheme)):
     return result
 
 
+def token_make_function(email: str):
+    access_token_expires = timedelta(minutes=auth["access_token_expires"])
+    access_token = create_access_token(
+        data={"email": email},
+        expires_delta=access_token_expires,
+    )
+
+    refresh_token_expires = timedelta(minutes=auth["refresh_token_expires"])
+    refresh_token = create_refresh_token(
+        data={"email": email, "refresh": True},
+        expires_delta=refresh_token_expires,
+    )
+
+    token_msg = {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+    return token_msg
+
+
+def access_token_make_function(email: str):
+    access_token_expires = timedelta(minutes=auth["access_token_expires"])
+    access_token = create_access_token(
+        data={"email": email},
+        expires_delta=access_token_expires,
+    )
+    return access_token

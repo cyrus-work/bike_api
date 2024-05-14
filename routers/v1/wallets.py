@@ -10,11 +10,7 @@ from models.wallet import make_wallet, get_wallets, get_wallet_by_owner_id
 router = APIRouter()
 
 
-@router.post("/create",
-             responses={
-                 200: {"model": WalletInfo},
-                 461: {"model": WalletFailMsg},
-             }, )
+@router.post("/create", )
 async def post_wallets_create_api(wallet: WalletMsg, db: SessionLocal = Depends(get_db)):
     """
     Create wallet
@@ -28,8 +24,6 @@ async def post_wallets_create_api(wallet: WalletMsg, db: SessionLocal = Depends(
     try:
         owner_id = wallet.owner_id
         address = wallet.address
-
-        db = SessionLocal()
 
         db_wallet = make_wallet(owner_id=owner_id, address=address)
 
