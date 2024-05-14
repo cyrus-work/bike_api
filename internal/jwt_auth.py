@@ -6,10 +6,10 @@ from typing import Optional
 import jwt
 from fastapi import Header, Depends
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.exceptions import HTTPException
+from fastapi.requests import Request
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
-from starlette.exceptions import HTTPException
-from starlette.requests import Request
 
 from internal.exceptions import JWTDataExpiredException
 from internal.log import logger

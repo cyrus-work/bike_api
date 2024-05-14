@@ -1,8 +1,8 @@
 import traceback
 
 from jwt import ExpiredSignatureError, InvalidTokenError
-from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse, Response
 
 from internal.exceptions import JWTDataExpiredException
 from internal.log import logger

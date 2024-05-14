@@ -4,7 +4,7 @@ from internal.exceptions import UserNotExistsException, AgencyNotExistsException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
-from messages.bike import BikeCreateRequest, BikeManagementFailMsg, BikeCreateMsg
+from messages.bike import BikeCreateRequest
 from models.agency import get_agency_by_name, get_agency_by_owner_id
 from models.bike import make_bike, get_bikes_by_owner_id, get_bikes_by_agency_id
 from models.user import get_user_by_email

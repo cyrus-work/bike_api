@@ -2,7 +2,6 @@ from datetime import datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
 from internal.exceptions import UserNotExistsException, BikeNotExistsException, LastWorkoutNotExistsException, \
     LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException

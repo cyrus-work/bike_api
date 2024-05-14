@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from jwt import InvalidTokenError, ExpiredSignatureError
 from sqlalchemy.exc import IntegrityError
 
+from internal.exceptions import JWTDataExpiredException, UserExistsException, UserEmailNotConfirmException, \
+    UserNotExistsException, UserCheckerNotExistException, UserCheckerNotMatchException, UserEmailNotExistException, \
+    JWTRefreshTokenNotExistException, EmailVerifiedException, UserPasswordNotMatchException, \
+    LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException, BikeNotExistsException, \
+    LastWorkoutNotExistsException, AgencyNotExistsException
 from internal.exceptions_handlers import integrity_exception_handler, expired_signature_exception_handler, \
     expired_data_exception_handler, invalid_token_exception_handler, unexpected_exception_handler, \
     user_exist_exception_handler, user_email_confirm_exception_handler, user_not_exist_exception_handler, \
@@ -11,20 +16,14 @@ from internal.exceptions_handlers import integrity_exception_handler, expired_si
     email_verified_exception_handler, user_password_not_match_exception_handler, \
     workout_last_id_not_match_exception_handler, workout_last_owner_not_match_exception_handler, \
     bike_not_exist_exception_handler, last_workout_not_exist_exception_handler, agency_not_exist_exception_handler
-from internal.exceptions import JWTDataExpiredException, UserExistsException, UserEmailNotConfirmException, \
-    UserNotExistsException, UserCheckerNotExistException, UserCheckerNotMatchException, UserEmailNotExistException, \
-    JWTRefreshTokenNotExistException, EmailVerifiedException, UserPasswordNotMatchException, \
-    LastWorkoutIdNotMatchException, WorkoutLastOwnerNotMatchException, BikeNotExistsException, \
-    LastWorkoutNotExistsException, AgencyNotExistsException
-
 from internal.mysql_db import Base, engine
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.user import router as v1_user_router
 from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
-from routers.v2.workout import router as v2_workout_router
 from routers.v2.user import router as v2_user_router
+from routers.v2.workout import router as v2_workout_router
 
 app = FastAPI()
 

@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -9,7 +7,7 @@ from internal.exceptions import UserExistsException, UserEmailNotConfirmExceptio
     UserCheckerNotExistException, UserCheckerNotMatchException, UserEmailNotExistException, \
     JWTRefreshTokenNotExistException, UserPasswordNotMatchException
 from internal.html_msg import html_ok_msg, html_ng_msg
-from internal.jwt_auth import create_access_token, auth, get_info_from_refresh_token, \
+from internal.jwt_auth import get_info_from_refresh_token, \
     oauth2_scheme, encoded_data_to_jwt, decode_data_from_jwt, token_make_function, access_token_make_function
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db

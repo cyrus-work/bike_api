@@ -5,18 +5,14 @@ from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal
 from internal.utils import model_to_dict
-from messages.agency import AgencyCreateRequest, AgencyInfo, AgencyManagementFailMsg
+from messages.agency import AgencyCreateRequest, AgencyInfo
 from models.agency import make_agency, get_agency_by_owner_id
 from models.user import get_user_by_email
 
 router = APIRouter()
 
 
-@router.post("/create",
-             responses={
-                 200: {"model": AgencyInfo},
-                 461: {"model": AgencyManagementFailMsg},
-             }, )
+@router.post("/create", )
 async def post_create_agency_api(agency: AgencyCreateRequest, db: SessionLocal = Depends(SessionLocal)):
     """
     Create agency
