@@ -116,6 +116,7 @@ async def post_workout_keep_api(
             msg = {"code": 462, "content": "workout date not found."}
             logger.error(f"post_workout_keep_api msg: {msg}")
             return JSONResponse(status_code=410, content=msg)
+
         logger.info(f"post_workout_keep_api db_workout: {db_last_workout}")
 
         if wid != db_last_workout.wid:
@@ -129,6 +130,7 @@ async def post_workout_keep_api(
 
         db_workout.energy = Decimal(energy)
         db_workout.calorie = Decimal(calorie)
+        db_workout.updated_at = datetime.now()
 
         db.merge(db_workout)
         db.commit()

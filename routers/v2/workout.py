@@ -95,10 +95,20 @@ async def post_workout_keep_api(
     """
     workout을 유지하는 API
 
-    :param daily: WorkoutKeepRequest 모델
-    :param db: SessionLocal
-    :param token: JWT 토큰
-    :return: JSONResponse
+    dialy값으로 전달되는 data는 인코딩 값이며 인코딩하기전 값은 다음과 같다.<P>
+    <pre>
+    {
+        "wid": "e7fce73002152d4a6b4308c98a6e09d72e278e7a949558c153f8e332713bd3ca",
+        "bike_serial": "1234567890",
+        "energy": 0.1,
+        "calorie": 0.1
+    }
+    </pre>
+
+    :param daily: WorkoutKeepRequest 모델<p>
+    :param db: SessionLocal<p>
+    :param token: JWT 토큰<p>
+    :return: JSONResponse<p>
     """
     logger.info(f">>> post_workout_keep_api start: {daily}")
 

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from internal.exceptions import AgencyNotExistsException
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
-from internal.mysql_db import SessionLocal
+from internal.mysql_db import SessionLocal, get_db
 from internal.utils import model_to_dict
 from messages.agency import AgencyCreateRequest, AgencyInfo
 from models.agency import make_agency, get_agency_by_owner_id
@@ -16,7 +16,7 @@ router = APIRouter()
     "/create",
 )
 async def post_create_agency_api(
-    agency: AgencyCreateRequest, db: SessionLocal = Depends(SessionLocal)
+    agency: AgencyCreateRequest, db: SessionLocal = Depends(get_db)
 ):
     """
     Create agency
@@ -51,7 +51,8 @@ async def post_create_agency_api(
 
 @router.post("/get_own")
 async def get_agency_by_owner_api(
-    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Get agency by owner email
