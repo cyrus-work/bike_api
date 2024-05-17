@@ -6,7 +6,13 @@ from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from messages.bike import BikeCreateRequest
 from models.agency import get_agency_by_name, get_agency_by_owner_id
-from models.bike import make_bike, get_bikes_by_owner_id, get_bikes_by_agency_id
+from models.bike import (
+    make_bike,
+    get_bikes_by_owner_id,
+    get_bikes_by_agency_id,
+    get_bikes_all,
+)
+from models.bike_management import get_bike_management_all
 from models.user import get_user_by_email
 
 router = APIRouter()
@@ -57,7 +63,7 @@ async def post_create_bike_api(
 
 @router.get("/get_own")
 async def get_bikes_own_api(
-    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     """
     Get all bikes
@@ -81,7 +87,7 @@ async def get_bikes_own_api(
 
 @router.get("/get_agency")
 async def get_bikes_agency_api(
-    db: SessionLocal = Depends(SessionLocal), token: str = Depends(oauth2_scheme)
+    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
     """
     Get all bikes
@@ -109,3 +115,21 @@ async def get_bikes_agency_api(
 
     finally:
         logger.info(f">>> get_bikes_agency_api end")
+
+
+@router.get("/get_all")
+async def get_bikes_all_api(db: SessionLocal = Depends(get_db)):
+    """
+    Get all bikes
+
+    :return:
+    """
+    logger.info(f">>> get_bikes_all_api start")
+
+    try:
+        db_bikes = get_bikes_all(db)
+        logger.info(f"get_bikes_all_api db_bikes: {db_bikes}")
+        return db_bikes
+
+    finally:
+        logger.info(f">>> get_bikes_all_api end")

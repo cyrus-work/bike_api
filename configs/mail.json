@@ -1,6 +1,6 @@
 {
-  "web": "http://bikeapi.cyruslab.io",
-  "host": "http://bikeapi.cyruslab.io:8000",
+  "web": "https://bikeapi.cyruslab.io",
+  "host": "https://bikeapi.cyruslab.io",
   "sender": "cyruscontract@gmail.com",
   "password": "xchmenqzepwzchnl"
 }

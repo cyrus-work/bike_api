@@ -1,45 +1,26 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends
-from fastapi.requests import Request
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse
 
-from internal.app_config import mail_config
-from internal.html_msg import html_ok_msg, html_ng_msg
 from internal.jwt_auth import (
     create_access_token,
-    create_refresh_token,
     auth,
     get_info_from_refresh_token,
     oauth2_scheme,
 )
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from internal.utils import verify_password, generate_hash, send_mail, get_password_hash
 from messages.jwt_auth import (
-    AccessRefreshTokenMsg,
-    SQLIntegrityErrorMsg,
     TokenEmailNotExistsMsg,
     TokenRefreshNotExistsMsg,
     AccessTokenMsg,
 )
 from messages.user import (
-    LoginFailMsg,
     UserNotFoundMsg,
-    UserPasswordNotMatchMsg,
-    UserLoginRequest,
-    UserCreateMsg,
-    UserResendMsg,
-    UserCreateFailMsg,
-    UserEmailDuplicateMsg,
-    UserCreateRequest,
-    UserResendFailMsg,
     UserEmailRequest,
-    UserEmailConfirmMsg,
-    InvalidUuidMsg,
 )
-from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
-from models.user_check import make_user_check, get_user_check_by_email
+from models.user import get_user_by_email, get_users
 
 router = APIRouter()
 

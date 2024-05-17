@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Tuple
 
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, CHAR
 
 from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
@@ -14,13 +14,16 @@ class User(Base):
     uid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
     type = Column(Integer, default=0)
     name = Column(String(100, collation="utf8mb4_unicode_ci"))
-    email = Column(String(120, collation="latin1_swedish_ci"), unique=True)
+    email = Column(
+        String(120, collation="latin1_swedish_ci"), unique=True, nullable=True
+    )
     hashed_pwd = Column(String(60, collation="latin1_swedish_ci"))
-    email_verified = Column(String(1), default="N")
-    agreement1 = Column(String(1, collation="latin1_swedish_ci"), default="N")
-    agreement2 = Column(String(1, collation="latin1_swedish_ci"), default="N")
-    agreement3 = Column(String(1, collation="latin1_swedish_ci"), default="N")
-    status = Column(Integer, default=0)
+    email_verified = Column(CHAR(1), default="N", comment="Y: 인증됨, N: 미인증")
+    agreement1 = Column(CHAR(1), default="N")
+    agreement2 = Column(CHAR(1), default="N")
+    agreement3 = Column(CHAR(1), default="N")
+    status = Column(Integer, default=0, comment="0: 가입대기, 1: 가입")
+    level = Column(Integer, default=0, comment="0: disable, 1: 일반유저, 9: 관리자")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -77,7 +80,11 @@ def make_user(
     )
 
 
-### database operations ###
+"""
+database operations
+"""
+
+
 @exception_handler
 def get_user_by_email(db: SessionLocal, email: str) -> User:
     """
@@ -195,6 +202,7 @@ def update_user_status(db: SessionLocal, uid: str, status: int) -> None:
     try:
         user = db.query(User).filter(User.uid == uid).first()
         user.status = status
+        db.merge(user)
         db.commit()
 
     finally:
@@ -241,3 +249,21 @@ def get_user_agreement_by_email(db: SessionLocal, email: str) -> Tuple[str, str,
 
     finally:
         logger.info(">>> get_user_agreement_by_email end.")
+
+
+@exception_handler
+def get_user_status_by_email(db: SessionLocal, email: str) -> int:
+    """
+    사용자의 상태를 조회한다.
+
+    :param db: SessionLocal
+    :param email: email
+    :return: int
+    """
+    logger.info(">>> get_user_status_by_email start.")
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        return user.status
+
+    finally:
+        logger.info(">>> get_user_status_by_email end.")

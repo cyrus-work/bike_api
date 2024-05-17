@@ -8,7 +8,25 @@ from internal.utils import exception_handler
 
 class BikeManagement(Base):
     """
-    BikeManagement Model - View
+        BikeManagement Model - View
+
+        create definer = hegsdev@`%` view bike_management as
+    select `b`.`bid`             AS `bid`,
+           `b`.`bike_no`         AS `bike_no`,
+           `b`.`cpu_version`     AS `cpu_version`,
+           `b`.`board_version`   AS `board_version`,
+           `b`.`production_date` AS `production_date`,
+           `b`.`sale_date`       AS `sale_date`,
+           `b`.`description`     AS `description`,
+           `b`.`status`          AS `status`,
+           `b`.`owner_id`        AS `owner_id`,
+           `u`.`name`            AS `owner_name`,
+           `a`.`aid`             AS `agency_id`,
+           `a`.`name`            AS `agency_name`,
+           `b`.`create_at`       AS `create_at`,
+           `b`.`update_at`       AS `update_at`
+    from ((`hegs_bike`.`bike` `b` left join `hegs_bike`.`users` `u`
+           on (`b`.`owner_id` = `u`.`uid`)) left join `hegs_bike`.`agencies` `a` on (`b`.`agency_id` = `a`.`aid`));
     """
 
     __tablename__ = "bike_management"
@@ -77,6 +95,26 @@ def get_bike_management_by_owner_id(
     return (
         db.query(BikeManagement)
         .filter_by(owner_id=owner_id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_bike_management_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list:
+    """
+    Get bike management by agency_id
+
+    :param db: database session
+    :param agency_id: agency_id value
+    :param offset: offset value
+    :param limit: limit value
+    :return: list
+    """
+    return (
+        db.query(BikeManagement)
+        .order_by(BikeManagement.create_at.desc())
         .offset(offset)
         .limit(limit)
         .all()

@@ -94,23 +94,38 @@ class UserEmailRequest(BaseModel):
         schema_extra = {"example": {"email": "test@test.com"}}
 
 
-### User Success Messages ###
+"""
+User Success Messages
+"""
+
+
 class UserCreateMsg(Message):
     class Config:
-        schema_extra = {"example": {"code": 200, "content": "User create"}}
+        schema_extra = {
+            "example": {
+                "code": 200,
+                "content": "User create",
+            }
+        }
 
 
-class UserResendMsg(Message):
+class UserSendMsg(Message):
     """
     User resend email model
     email: User email(str)
     """
 
     email: str
+    checker: str
 
     class Config:
         schema_extra = {
-            "example": {"code": 200, "content": "Email sent", "email": "test@test.com"}
+            "example": {
+                "code": 200,
+                "content": "Email sent",
+                "email": "test@test.com",
+                "checker": "T1A132b0eb27b18ed63ff2e12d600e16a0d297cfa68d848ff4cc3aaea8704829",
+            }
         }
 
 
@@ -119,7 +134,11 @@ class UserEmailConfirmMsg(Message):
         schema_extra = {"example": {"code": 200, "content": "User email confirm"}}
 
 
-### User Fail Messages ###
+"""
+User Fail Messages
+"""
+
+
 class LoginFailMsg(Message):
     class Config:
         schema_extra = {"example": {"code": 461, "content": "Login fail"}}

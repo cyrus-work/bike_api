@@ -29,9 +29,8 @@ from messages.jwt_auth import AccessRefreshTokenMsg, AccessTokenMsg
 from messages.user import (
     UserLoginRequest,
     UserCreateMsg,
-    UserResendMsg,
     UserCreateRequest,
-    UserEmailRequest,
+    UserEmailRequest, UserSendMsg,
 )
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
 from models.user_check import make_user_check, get_user_check_by_email
@@ -108,12 +107,12 @@ async def post_create_user_api(
 
         # 사용자 이메일로 정보를 조회한다.
         db_user = get_user_by_email(db, user.email)
-        if db_user is not None and db_user.hashed_pwd is not None:
-            # 사용자가 존재학 사용자의 password가 존재하면 중복 사용자로 판단한다.
-            raise UserExistsException
-        elif db_user is None:
+        if db_user is None:
             # 사용자 정보가 없으면 가입절차 위반임.
-            raise UserNotExistsException
+            raise UserEmailNotExistException
+        elif db_user.status != 0:
+            # status 값이 0이 아니면 사용자가 존재하는 것으로 간주한다.
+            raise UserExistsException
 
         db_user_checker = get_user_check_by_email(db, email)
         if db_user_checker is None:
@@ -127,6 +126,7 @@ async def post_create_user_api(
         db_user = get_user_by_email(db, email)
         db_user.hashed_pwd = get_password_hash(password)
         db_user.name = name
+        db_user.status = 1
         # 사용자 약관 동의 정보
         db_user.agreement1 = agree1
         db_user.agreement2 = agree2
@@ -161,7 +161,7 @@ async def post_user_email_send_api(
     table [user_check]
     :param data: UserResendRequest 모델
     :param db: db session
-    :return: UserResendMsg 모델
+    :return: UserSendMsg 모델
     """
     logger.info(f">>> post_user_email_send_api start: {data}")
 
@@ -175,7 +175,7 @@ async def post_user_email_send_api(
         db_user_exist = get_user_by_email(db, email)
         logger.info(f"post_user_email_send_api db_user_exist: {db_user_exist}")
         if db_user_exist is not None:
-            if db_user_exist.email_verified == "Y":
+            if db_user_exist.status != 0:
                 raise UserExistsException
             else:
                 logger.info(f"post_user_email_send_api: delete user")
@@ -215,7 +215,7 @@ async def post_user_email_send_api(
         send_mail(mail_config, email, checker_msg)
 
         logger.info(f"post_user_email_send_api db_check: {email}, {checker}")
-        return UserResendMsg(code=200, content="Send email", email=email)
+        return UserSendMsg(code=200, content="Send email", email=email, checker=checker)
 
     finally:
         logger.info(f">>> post_user_email_send_api end")

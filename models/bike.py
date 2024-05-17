@@ -15,18 +15,18 @@ class Bike(Base):
     bike_no = Column(String(12), index=True)
     cpu_version = Column(String(10))
     board_version = Column(String(10))
-    production_date = Column(DateTime, default=datetime.now)
-    sale_date = Column(DateTime)
-    description = Column(String(500), default="")
-    status = Column(Integer, default=0)
-    owner_id = Column(
-        String(64, collation="latin1_swedish_ci"),
-        ForeignKey("users.uid", ondelete="CASCADE"),
-    )
-    agency_id = Column(
-        String(64, collation="latin1_swedish_ci"),
-        ForeignKey("agencies.aid", ondelete="CASCADE"),
-    )
+    # production_date = Column(DateTime, default=datetime.now)
+    # sale_date = Column(DateTime)
+    # description = Column(String(500), default="")
+    # status = Column(Integer, default=0)
+    # owner_id = Column(
+    #     String(64, collation="latin1_swedish_ci"),
+    #     ForeignKey("users.uid", ondelete="CASCADE"),
+    # )
+    # agency_id = Column(
+    #     String(64, collation="latin1_swedish_ci"),
+    #     ForeignKey("agencies.aid", ondelete="CASCADE"),
+    # )
     create_at = Column(DateTime, default=datetime.now)
     update_at = Column(DateTime, onupdate=datetime.now)
 
@@ -76,8 +76,6 @@ def make_bike(
         bike_no=bike_no,
         cpu_version=cpu_version,
         board_version=board_version,
-        owner_id=owner_id,
-        agency_id=agency_id,
     )
 
 
@@ -137,3 +135,15 @@ def get_bikes_by_agency_id(
     return (
         db.query(Bike).filter_by(agency_id=agency_id).offset(offset).limit(limit).all()
     )
+
+
+def get_bikes_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Bike]:
+    """
+    Get all bikes
+
+    :param db: database session
+    :param offset: offset value
+    :param limit: limit value
+    :return: list[Bike]
+    """
+    return db.query(Bike).offset(offset).limit(limit).all()
