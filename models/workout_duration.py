@@ -134,3 +134,18 @@ def get_workout_duration_by_owner_id(
         .limit(limit)
         .all()
     )
+
+
+@exception_handler
+def get_workout_duration_all(
+    db: SessionLocal, offset: int = 0, limit: int = 50
+) -> list[WorkoutDuration]:
+    """
+    Get all workout durations
+
+    :param db: database session
+    :param offset: offset value
+    :param limit: limit value
+    :return: list[WorkoutDuration]
+    """
+    return db.query(WorkoutDuration).offset(offset).limit(limit).all()

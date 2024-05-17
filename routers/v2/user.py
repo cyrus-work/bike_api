@@ -30,10 +30,12 @@ from messages.user import (
     UserLoginRequest,
     UserCreateMsg,
     UserCreateRequest,
-    UserEmailRequest, UserSendMsg,
+    UserEmailRequest,
+    UserSendMsg,
 )
 from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
 from models.user_check import make_user_check, get_user_check_by_email
+from models.user_wallet import get_user_wallets
 
 router = APIRouter()
 
@@ -400,3 +402,22 @@ async def refresh_token_api(
 
     finally:
         logger.info(f">>> refresh_token_api end")
+
+
+@router.get("/user_info")
+async def get_user_info(db: SessionLocal = Depends(get_db)):
+    """
+    사용자 정보 조회
+
+    :param db: db session
+    :return:
+    """
+    logger.info(f">>> get_user_info start")
+
+    try:
+        db_user_info = get_user_wallets(db)
+        logger.info(f"get_user_info: {db_user_info}")
+        return db_user_info
+
+    finally:
+        logger.info(f">>> get_user_info end")

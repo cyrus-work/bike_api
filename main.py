@@ -49,6 +49,7 @@ from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
 from routers.v2.user import router as v2_user_router
 from routers.v2.workout import router as v2_workout_router
+from routers.admin.workout import router as admin_workout_router
 
 app = FastAPI()
 
@@ -111,3 +112,5 @@ app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 
 app.include_router(v2_workout_router, prefix="/v2/workout", tags=["workout"])
 app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
+
+app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])

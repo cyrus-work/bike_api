@@ -244,3 +244,13 @@ def calculate_workout_daily_by_owner_id(
         .filter_by(owner_id=owner_id, date=date)
         .update({"status": 1})
     )
+
+
+def get_workouts_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
+    return (
+        db.query(DailyWorkout)
+        .order_by(DailyWorkout.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
