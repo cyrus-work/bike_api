@@ -24,14 +24,20 @@ class DailyWorkout(Base):
     energy = Column(DECIMAL(36, 18), index=True, default=0)
     calorie = Column(DECIMAL(36, 18), index=True, default=0)
     status = Column(Integer, default=0)  # 0: 미정산, 1: 포인트 정산
+    token = Column(DECIMAL(36, 18), default=0)
+    point = Column(Integer, default=0)
+    duration = Column(Integer, default=0)
+    duration_sec = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, onupdate=datetime.now)
 
     def __repr__(self):
         return (
-            f"DailyWorkout(wid={self.wid}, owner_id={self.owner_id}, bid={self.bid}, date={self.date}, "
-            f"ptype={self.ptype}, energy={self.energy}, calorie={self.calorie}, status={self.status}, "
-            f"created_at={self.created_at}, updated_at={self.updated_at})"
+            f"<DailyWorkout(wid={self.wid}, owner_id={self.owner_id}, bid={self.bid}, "
+            f"date={self.date}, ptype={self.ptype}, energy={self.energy}, "
+            f"calorie={self.calorie}, status={self.status}, token={self.token}, "
+            f"point={self.point}, duration={self.duration}, duration_sec={self.duration_sec}, "
+            f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )
 
 
@@ -145,7 +151,7 @@ def get_workout_by_owner_id(
 def get_workout_by_date_and_owner_id(
     db: SessionLocal,
     owner_id: str,
-    date: datetime.date = datetime.today(),
+    date: datetime.date = datetime.today().date(),
     offset: int = 0,
     limit: int = 50,
 ) -> list[DailyWorkout]:
@@ -158,7 +164,6 @@ def get_workout_by_date_and_owner_id(
     :param offset: 시작점, 기본값 0
     :param limit: 결과값의 개수, 기본값 50
     """
-    date = date.strftime("%Y-%m-%d")
     logger.info(f"get_workout_by_date_and_owner_id: {owner_id}, {date}")
     return (
         db.query(DailyWorkout)
@@ -246,7 +251,9 @@ def calculate_workout_daily_by_owner_id(
     )
 
 
-def get_workouts_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[DailyWorkout]:
+def get_workouts_all(
+    db: SessionLocal, offset: int = 0, limit: int = 50
+) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
         .order_by(DailyWorkout.created_at.desc())

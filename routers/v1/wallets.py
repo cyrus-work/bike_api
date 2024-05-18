@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
-from messages.wallets import WalletMsg, WalletFailMsg, WalletInfo
+from messages.wallets import WalletMsg
 from models.user import get_user_by_email
 from models.wallet import make_wallet, get_wallets, get_wallet_by_owner_id
 
@@ -14,22 +14,24 @@ router = APIRouter()
     "/create",
 )
 async def post_wallets_create_api(
-    wallet: WalletMsg, db: SessionLocal = Depends(get_db)
+    req: WalletMsg, db: SessionLocal = Depends(get_db)
 ):
     """
     Create wallet
 
-    :param wallet:
+    :param req:
     :param db:
     :return:
     """
-    logger.info(f">>> post_wallets_create_api start: {wallet}")
+    logger.info(f">>> post_wallets_create_api start: {req}")
 
     try:
-        owner_id = wallet.owner_id
-        address = wallet.address
+        email = req.email
+        address = req.address
 
-        db_wallet = make_wallet(owner_id=owner_id, address=address)
+        db_user = get_user_by_email(db, email)
+
+        db_wallet = make_wallet(owner_id=db_user.uid, address=address)
 
         db.add(db_wallet)
         db.commit()

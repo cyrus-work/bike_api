@@ -104,3 +104,10 @@ class AgencyNotExistsException(Exception):
 
     def __init__(self, message="Agency not exists"):
         super().__init__(message)
+
+
+class BikeIdNotMatchException(Exception):
+    """Bike ID가 일치하지 않을 때 발생하는 예외"""
+
+    def __init__(self, message="Bike id not match"):
+        super().__init__(message)

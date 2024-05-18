@@ -4,9 +4,12 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from internal.app_config import reward
 from internal.exceptions import (
     LastWorkoutIdNotMatchException,
     WorkoutLastOwnerNotMatchException,
+    BikeIdNotMatchException,
+    LastWorkoutNotExistsException,
 )
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
@@ -100,6 +103,8 @@ async def post_workout_keep_api(
     """
     logger.info(f">>> post_workout_keep_api start: {daily}")
 
+    coin = 0
+    point = 0
     try:
         email = get_email_from_jwt(token)
 
@@ -112,10 +117,7 @@ async def post_workout_keep_api(
 
         db_last_workout = get_last_workout_by_owner_id(db, db_user.uid)
         if db_last_workout is None:
-            logger.info(f"post_workout_keep_api: make_daily_production")
-            msg = {"code": 462, "content": "workout date not found."}
-            logger.error(f"post_workout_keep_api msg: {msg}")
-            return JSONResponse(status_code=410, content=msg)
+            raise LastWorkoutNotExistsException
 
         logger.info(f"post_workout_keep_api db_workout: {db_last_workout}")
 
@@ -125,12 +127,34 @@ async def post_workout_keep_api(
         if db_user.uid != db_last_workout.owner_id:
             raise WorkoutLastOwnerNotMatchException
 
+        db_bike = get_bike_by_bike_no(db, bike_serial)
+
+        if db_last_workout.bid != db_bike.bid:
+            raise BikeIdNotMatchException
+
         # 마지막 운동 정보를 가져온다.
         db_workout = get_workout_by_wid(db, db_last_workout.wid)
 
         db_workout.energy = Decimal(energy)
         db_workout.calorie = Decimal(calorie)
         db_workout.updated_at = datetime.now()
+        duration_sec = (db_workout.updated_at - db_workout.created_at).total_seconds()
+
+        minute_diff = int(duration_sec / 60)
+        if minute_diff < 3:
+            logger.info(f"invalid minute_diff: {minute_diff}")
+            coin = 0
+            point = 0
+        else:
+            logger.info(f"valid minute_diff: {minute_diff}")
+            if db_workout.ptype == 0:
+                coin = minute_diff * reward["token"]
+            elif db_workout.ptype == 1:
+                point = minute_diff * reward["point"]
+        db_workout.token = coin
+        db_workout.point = point
+        db_workout.duration = minute_diff
+        db_workout.duration_sec = duration_sec
 
         db.merge(db_workout)
         db.commit()

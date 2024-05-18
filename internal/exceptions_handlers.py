@@ -159,3 +159,11 @@ async def agency_not_exist_exception_handler(
     logger.error(f"Agency not found: {traceback.format_exc()}")
     msg = {"code": 118, "content": "Agency not found."}
     return JSONResponse(status_code=410, content=msg)
+
+
+async def bike_id_not_match_exception_handler(
+    request: Request, exc: Exception
+) -> Response:
+    logger.error(f"Bike id not match: {traceback.format_exc()}")
+    msg = {"code": 119, "content": "Bike id not match."}
+    return JSONResponse(status_code=410, content=msg)

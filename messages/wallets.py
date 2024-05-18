@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 
@@ -28,7 +26,7 @@ class WalletCreateMsg(Message):
 
 
 class WalletMsg(BaseModel):
-    owner_id: str
+    email: str
     address: str
 
 

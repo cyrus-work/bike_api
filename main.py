@@ -19,6 +19,7 @@ from internal.exceptions import (
     BikeNotExistsException,
     LastWorkoutNotExistsException,
     AgencyNotExistsException,
+    BikeIdNotMatchException,
 )
 from internal.exceptions_handlers import (
     integrity_exception_handler,
@@ -40,6 +41,7 @@ from internal.exceptions_handlers import (
     bike_not_exist_exception_handler,
     last_workout_not_exist_exception_handler,
     agency_not_exist_exception_handler,
+    bike_id_not_match_exception_handler,
 )
 from internal.mysql_db import Base, engine
 from routers.v1.agency import router as v1_agency_router
@@ -92,6 +94,7 @@ app.add_exception_handler(
     LastWorkoutNotExistsException, last_workout_not_exist_exception_handler
 )
 app.add_exception_handler(AgencyNotExistsException, agency_not_exist_exception_handler)
+app.add_exception_handler(BikeIdNotMatchException, bike_id_not_match_exception_handler)
 
 # 모든 도메인에서 접근 가능하도록 설정
 origins = ["*"]

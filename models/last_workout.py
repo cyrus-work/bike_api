@@ -13,6 +13,7 @@ class LastWorkout(Base):
     wid = Column(
         String(64, collation="latin1_swedish_ci"), primary_key=True, index=True
     )
+    bid = Column(String(64, collation="latin1_swedish_ci"))
     owner_id = Column(
         String(64, collation="latin1_swedish_ci"),
         ForeignKey("users.uid", ondelete="CASCADE"),
@@ -21,7 +22,7 @@ class LastWorkout(Base):
     created_at = Column(DateTime)
 
     def __repr__(self):
-        return f"LastWorkout(wid={self.wid}, owner_id={self.owner_id}, created_at={self.created_at})"
+        return f"LastWorkout(wid={self.wid}, bid={self.bid}, owner_id={self.owner_id}, created_at={self.created_at})"
 
 
 @exception_handler

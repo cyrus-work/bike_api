@@ -16,6 +16,10 @@ with open("configs/mail.json", "r") as f:
     mail_config = json.load(f)
     f.close()
 
+with open("configs/reward.json", "r") as f:
+    reward = json.load(f)
+    f.close()
+
 
 def scanapi_parse(scanapi):
     polygon_scan_api_key = scanapi["polygon_scan_api_key"]
