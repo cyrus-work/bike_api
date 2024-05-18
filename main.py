@@ -44,6 +44,9 @@ from internal.exceptions_handlers import (
     bike_id_not_match_exception_handler,
 )
 from internal.mysql_db import Base, engine
+from routers.admin.bike import router as admin_bike_router
+from routers.admin.wallet import router as admin_wallet_router
+from routers.admin.workout import router as admin_workout_router
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.user import router as v1_user_router
@@ -51,8 +54,6 @@ from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
 from routers.v2.user import router as v2_user_router
 from routers.v2.workout import router as v2_workout_router
-from routers.admin.workout import router as admin_workout_router
-from routers.admin.bike import router as admin_bike_router
 
 app = FastAPI()
 
@@ -119,3 +120,4 @@ app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
 
 app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])
 app.include_router(admin_bike_router, prefix="/admin/bike", tags=["admin"])
+app.include_router(admin_wallet_router, prefix="/admin/wallet", tags=["admin"])

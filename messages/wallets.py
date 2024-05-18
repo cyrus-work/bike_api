@@ -26,7 +26,6 @@ class WalletCreateMsg(Message):
 
 
 class WalletMsg(BaseModel):
-    email: str
     address: str
 
 

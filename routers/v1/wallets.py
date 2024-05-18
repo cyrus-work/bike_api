@@ -11,29 +11,36 @@ router = APIRouter()
 
 
 @router.post(
-    "/create",
+    "/set",
 )
 async def post_wallets_create_api(
-    req: WalletMsg, db: SessionLocal = Depends(get_db)
+    req: WalletMsg,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
 ):
     """
     Create wallet
 
     :param req:
     :param db:
+    :param token:
     :return:
     """
     logger.info(f">>> post_wallets_create_api start: {req}")
 
     try:
-        email = req.email
         address = req.address
 
+        email = get_email_from_jwt(token)
         db_user = get_user_by_email(db, email)
 
-        db_wallet = make_wallet(owner_id=db_user.uid, address=address)
+        db_wallet = get_wallet_by_owner_id(db, owner_id=db_user.uid)
+        if db_wallet:
+            db.merge(db_wallet)
+        else:
+            db_wallet = make_wallet(owner_id=db_user.uid, address=address)
+            db.add(db_wallet)
 
-        db.add(db_wallet)
         db.commit()
         db.refresh(db_wallet)
 
@@ -62,7 +69,7 @@ async def get_wallets_api(db: SessionLocal = Depends(get_db)):
         logger.info(f">>> get_wallets_api end")
 
 
-@router.post("/get_own")
+@router.get("/get_own")
 async def get_wallets_own_api(
     db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
