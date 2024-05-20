@@ -21,10 +21,14 @@ class UserCheck(Base):
     )
     email = Column(String(120, collation="latin1_swedish_ci"))
     checker = Column(String(64))
+    verified = Column(String(1), default="N", comment="Y: 확인됨, N: 미인증")
     created_at = Column(DateTime, default=func.now())
 
     def __repr__(self):
-        return f"UserCheck(id={self.id}, email={self.email}, checker={self.checker}, created_at={self.created_at})"
+        return (
+            f"UserCheck(cid={self.cid}, email={self.email}, checker={self.checker}, "
+            f"verified={self.verified}, created_at={self.created_at})"
+        )
 
 
 def is_cid_duplicate(cid: str) -> bool:
@@ -67,3 +71,15 @@ def get_user_check_by_email(db: SessionLocal, email: str):
     :return: UserCheck
     """
     return db.query(UserCheck).filter_by(email=email).first()
+
+
+@exception_handler
+def update_user_check_verified(db: SessionLocal, email: str):
+    """
+    Update user check verified
+
+    :param db: database session
+    :param email: email value
+    """
+    db.query(UserCheck).filter_by(email=email).update({"verified": "Y"})
+    return True

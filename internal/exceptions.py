@@ -111,3 +111,24 @@ class BikeIdNotMatchException(Exception):
 
     def __init__(self, message="Bike id not match"):
         super().__init__(message)
+
+
+class CredentialException(Exception):
+    """Credential이 일치하지 않을 때 발생하는 예외"""
+
+    def __init__(self, message="Could not validate credentials"):
+        super().__init__(message)
+
+
+class JWTErrorsException(Exception):
+    """JWT 토큰이 만료되었을 때 발생하는 예외"""
+
+    def __init__(self, message="JWT errors"):
+        super().__init__(message)
+
+
+class AdminRequiredException(Exception):
+    """관리자 권한이 필요할 때 발생하는 예외"""
+
+    def __init__(self, message="Admin required"):
+        super().__init__(message)

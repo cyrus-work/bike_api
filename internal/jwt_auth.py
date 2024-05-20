@@ -5,18 +5,25 @@ from typing import Optional
 
 import jwt
 from fastapi import Header, Depends
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.exceptions import HTTPException
 from fastapi.requests import Request
+from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
-from internal.exceptions import JWTDataExpiredException
+from internal.exceptions import (
+    JWTDataExpiredException,
+    UserEmailNotExistException,
+    JWTErrorsException,
+    CredentialException,
+    AdminRequiredException,
+)
 from internal.log import logger
-from internal.mysql_db import SessionLocal
-from internal.utils import verify_password
+from internal.mysql_db import SessionLocal, get_db
+from internal.utils import verify_password, exception_handler
 from messages.jwt_auth import TokenData
-from models.user import get_user_by_email
+from models.user import get_user_by_email, User
 
 with open("./configs/auth.json") as f:
     auth = json.load(f)
@@ -52,9 +59,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     logger.info(f"secret_key: {SECRET_KEY}")
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=auth["access_token_expires"])
+        expire = datetime.now() + timedelta(minutes=auth["access_token_expires"])
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -70,9 +77,9 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     logger.info(f"create_refresh_token: {data}, {expires_delta}")
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=7)
+        expire = datetime.now() + timedelta(days=7)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -88,10 +95,10 @@ def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
     """
     logger.info(f"encoded_data_to_jwt: {data}")
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
         # 기본 값으로 data_expires를 사용 (60 분)
-        expire = datetime.utcnow() + timedelta(minutes=data_expires)
+        expire = datetime.now() + timedelta(minutes=data_expires)
     data.update({"exp": expire})
     encoded_jwt = jwt.encode(data, DATA_SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -139,6 +146,31 @@ def get_info_from_refresh_token(token: str):
     payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
     logger.info(f"get_info_from_refresh_token: {payload}")
     return payload
+
+
+@exception_handler
+def get_current_user(
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    logger.info(f">>> get_current_user start")
+    try:
+        payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
+        email: str = payload.get("email")
+        if email is None:
+            raise UserEmailNotExistException
+    except jwt.PyJWTError:
+        raise JWTErrorsException
+    user = get_user_by_email(db, email)
+    if user is None:
+        raise CredentialException
+    return user, db
+
+
+def admin_required(current_user: User = Depends(get_current_user)):
+    user, db = current_user
+    if user.level != 9:
+        raise AdminRequiredException
+    return current_user
 
 
 def get_user_from_jwt(db: SessionLocal, token: str):

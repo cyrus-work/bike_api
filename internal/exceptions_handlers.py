@@ -1,8 +1,8 @@
 import traceback
 
-from jwt import ExpiredSignatureError, InvalidTokenError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, Response
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 from internal.exceptions import JWTDataExpiredException
 from internal.log import logger
@@ -166,4 +166,24 @@ async def bike_id_not_match_exception_handler(
 ) -> Response:
     logger.error(f"Bike id not match: {traceback.format_exc()}")
     msg = {"code": 119, "content": "Bike id not match."}
+    return JSONResponse(status_code=410, content=msg)
+
+
+async def credentials_exception_handler(request: Request, exc: Exception) -> Response:
+    logger.error(f"Credentials exception: {traceback.format_exc()}")
+    msg = {"code": 120, "content": "Credentials exception."}
+    return JSONResponse(status_code=410, content=msg)
+
+
+async def jwt_errors_exception_handler(request: Request, exc: Exception) -> Response:
+    logger.error(f"JWT errors: {traceback.format_exc()}")
+    msg = {"code": 121, "content": "JWT errors exception."}
+    return JSONResponse(status_code=410, content=msg)
+
+
+async def admin_required_exception_handler(
+    request: Request, exc: Exception
+) -> Response:
+    logger.error(f"Admin required: {traceback.format_exc()}")
+    msg = {"code": 122, "content": "Admin required exception."}
     return JSONResponse(status_code=410, content=msg)

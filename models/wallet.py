@@ -95,7 +95,7 @@ def get_wallet_by_owner_id(db: SessionLocal, owner_id: str) -> Wallet:
 
 
 @exception_handler
-def get_wallets(db: SessionLocal, offset: int = 0, limit: int = 50) -> Wallet:
+def get_wallets(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Wallet]:
     """
     Get wallets
 

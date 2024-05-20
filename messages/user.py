@@ -49,7 +49,7 @@ class UserCreateRequest(BaseModel):
         }
 
 
-class USerCreateRequestV2(BaseModel):
+class UserCreateRequestV2(BaseModel):
     data: str
 
     class Config:
@@ -67,17 +67,17 @@ class UserUpdateRequest(BaseModel):
     """
 
     email: str
-    password: str
+    checker: str
+    password: Optional[str] = None
     name: Optional[str] = None
-    email_confirm: Optional[str] = "Y"
 
     class Config:
         schema_extra = {
             "example": {
                 "password": "test",
+                "checker": "T1A1249c606548eee1b5e1736ccad255da646a09de4fdc971614e11c73683a63",
                 "email": "test@test.com",
                 "name": "test",
-                "email_confirm": "Y",
             }
         }
 

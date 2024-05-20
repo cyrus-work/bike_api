@@ -3,7 +3,6 @@ from sqlalchemy import Column, Integer, String, DateTime, CHAR
 from internal.mysql_db import Base
 from internal.utils import exception_handler
 from models.user import User
-from models.wallet import Wallet
 
 
 class UserWalletView(Base):
@@ -48,3 +47,15 @@ def get_user_wallets(session):
     :return: UserWalletView
     """
     return session.query(UserWalletView).all()
+
+
+@exception_handler
+def get_user_info_by_uid(session, uid):
+    """
+    Get user info by uid
+
+    :param session: session
+    :param uid: uid
+    :return: User
+    """
+    return session.query(User).filter_by(uid=uid).first()

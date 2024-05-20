@@ -21,6 +21,7 @@ from internal.jwt_auth import (
     decode_data_from_jwt,
     token_make_function,
     access_token_make_function,
+    get_current_user,
 )
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
@@ -32,10 +33,17 @@ from messages.user import (
     UserCreateRequest,
     UserEmailRequest,
     UserSendMsg,
+    UserUpdateRequest,
 )
-from models.user import get_user_by_email, make_user, get_users, get_user_exist_by_email
+from models.user import (
+    get_user_by_email,
+    make_user,
+    get_users,
+    get_user_exist_by_email,
+    User,
+)
 from models.user_check import make_user_check, get_user_check_by_email
-from models.user_wallet import get_user_wallets
+from models.user_wallet import get_user_wallets, get_user_info_by_uid
 
 router = APIRouter()
 
@@ -223,6 +231,52 @@ async def post_user_email_send_api(
         logger.info(f">>> post_user_email_send_api end")
 
 
+@router.post("/email_resend")
+async def post_user_email_resend_api(
+    data: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
+    """
+    이메일 재전송
+
+    :param data: UserEmailRequest 모델
+    :param db: db session
+    :return: UserSendMsg 모델
+
+    """
+    logger.info(f">>> post_user_email_resend_api start: {data}")
+
+    try:
+        email = data.email
+
+        db_user = get_user_exist_by_email(db, email)
+        if db_user is None:
+            raise UserNotExistsException
+
+        checker = generate_hash()
+        db_checker = make_user_check(email=email, checker=checker)
+        db.add(db_checker)
+        db.commit()
+
+        user_json = {
+            "email": email,
+            "uid": db_user.uid,
+            "created_at": db_user.created_at.isoformat(),
+            "checker": checker,
+        }
+
+        checker_msg = encoded_data_to_jwt(user_json)
+
+        send_mail(mail_config, email, checker_msg)
+
+        logger.info(f"post_user_email_resend_api db_check: {email}, {checker}")
+        return UserSendMsg(
+            code=200, content="Resend email", email=email, checker=checker
+        )
+
+    finally:
+        logger.info(f">>> post_user_email_resend_api end")
+
+
 @router.get(
     "/email_confirm",
 )
@@ -253,12 +307,20 @@ async def email_confirm_user_api(
             raise UserCheckerNotExistException
 
         if db_check.checker == check_key:
+
+            # checker 정보의 verify를 Y로 변경
+            db_check.verified = "Y"
+            db.merge(db_check)
+            db.commit()
+            logger.info(f"email_confirm_user_api db_check: {db_check}")
+
             db_user = get_user_by_email(db, email)
             db_user.email_verified = "Y"
             db.merge(db_user)
             db.commit()
 
             logger.info(f"email_confirm_user_api: {email} confirm success")
+
             msg = {"code": 200, "content": "Email confirm success"}
             logger.info(f"email_confirm_user_api msg: {msg}")
             return HTMLResponse(content=html_ok_content, status_code=200)
@@ -304,7 +366,7 @@ async def email_confirm_check_user_api(
 
 @router.post("/update")
 async def update_user_by_email_api(
-    req: UserCreateRequest, db: SessionLocal = Depends(get_db)
+    req: UserUpdateRequest, db: SessionLocal = Depends(get_db)
 ):
     """
     사용자 업데이트
@@ -317,15 +379,27 @@ async def update_user_by_email_api(
 
     try:
         email = req.email
-        password = req.password
+        checker = req.checker
+        name = req.name
+
+        db_checker = get_user_check_by_email(db, email)
+        if db_checker is None:
+            raise UserCheckerNotExistException
+
+        if db_checker.checker != checker:
+            raise UserCheckerNotMatchException
+
+        if db_checker.verified != "Y":
+            raise UserEmailNotConfirmException
+
+        db.merge(db_checker)
+        db.flush()
 
         db_user = get_user_by_email(db, email)
         if db_user is None:
             raise UserNotExistsException
 
         db_user.name = req.name
-        db_user.hashed_pwd = get_password_hash(password)
-
         db.merge(db_user)
         db.commit()
 
@@ -404,7 +478,7 @@ async def refresh_token_api(
         logger.info(f">>> refresh_token_api end")
 
 
-@router.get("/user_info")
+@router.get("/all_users_info")
 async def get_user_info(db: SessionLocal = Depends(get_db)):
     """
     사용자 정보 조회
@@ -421,3 +495,27 @@ async def get_user_info(db: SessionLocal = Depends(get_db)):
 
     finally:
         logger.info(f">>> get_user_info end")
+
+
+@router.get("/info")
+async def get_user_info_by_owner(user: User = Depends(get_current_user)):
+    """
+    사용자 정보 조회
+
+    :param user: User 모델
+    :return:
+    """
+    logger.info(f">>> get_user_info_by_owner start")
+
+    db_user, db = user
+    try:
+        db_user_info = get_user_info_by_uid(db, db_user.uid)
+        user_dict = db_user_info.__dict__.copy()
+        user_dict.pop("_sa_instance_state")
+        user_dict.pop("uid")
+        user_dict.pop("hashed_pwd")
+        logger.info(f"get_user_info_by_owner: {user_dict}")
+        return user_dict
+
+    finally:
+        logger.info(f">>> get_user_info_by_owner end")
