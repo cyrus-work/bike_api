@@ -58,4 +58,4 @@ def get_user_info_by_uid(session, uid):
     :param uid: uid
     :return: User
     """
-    return session.query(User).filter_by(uid=uid).first()
+    return session.query(UserWalletView).filter_by(uid=uid).first()

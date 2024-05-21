@@ -513,6 +513,9 @@ async def get_user_info_by_owner(user: User = Depends(get_current_user)):
         user_dict.pop("_sa_instance_state")
         user_dict.pop("uid")
         user_dict.pop("hashed_pwd")
+        user_dict.pop("wid")
+        user_dict.pop("wallet_created_at")
+        user_dict.pop("wallet_updated_at")
         logger.info(f"get_user_info_by_owner: {user_dict}")
         return user_dict
 

@@ -11,7 +11,7 @@ from internal.exceptions import (
     BikeIdNotMatchException,
     LastWorkoutNotExistsException,
 )
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
+from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, get_current_user
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from messages.workout import (
@@ -23,13 +23,16 @@ from messages.workout import (
 )
 from models.bike import get_bike_by_bike_no
 from models.last_workout import get_last_workout_by_owner_id
-from models.user import get_user_by_email
+from models.user import get_user_by_email, User
+from models.wallet import get_wallet_by_owner_id
 from models.workout import (
     get_workout_by_owner_id,
     make_workout,
     get_workout_by_date_and_owner_id,
     get_workout_by_wid,
     get_workout_duration_by_date_and_owner_id,
+    get_sum_of_workout_duration_not_calculated_by_user_id,
+    get_workout_duration_not_calculated_by_user_id,
 )
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
@@ -262,6 +265,60 @@ async def get_workout_duration_api(
 
     finally:
         logger.info(f">>> get_workout_duration_api end")
+
+
+@router.get("/not_calculated_token")
+async def get_not_calculated_token_api(
+    db: SessionLocal = Depends(get_db), user: User = Depends(get_current_user)
+):
+    """
+    token이 계산되지 않은 workout을 조회하는 API
+    """
+    logger.info(f">>> get_not_calculated_token_api start")
+
+    db_user, db = user
+    try:
+        db_workout = get_sum_of_workout_duration_not_calculated_by_user_id(
+            db, db_user.uid
+        )
+        logger.info(f"get_not_calculated_token_api db_workout: {db_workout}")
+        return db_workout
+
+    finally:
+        logger.info(f">>> get_not_calculated_token_api end")
+
+
+@router.post("/request_token")
+async def post_request_token_api(
+    user: User = Depends(get_current_user),
+):
+    """
+    workout을 조회하는 API
+
+    :param daily: WorkoutGetRequest 모델
+    :return: WorkoutCreateMsg 모델
+    """
+    logger.info(f"post_request_token_api start")
+
+    try:
+        db_user, db = user
+
+        db_workouts = get_workout_duration_not_calculated_by_user_id(db, db_user.uid)
+        db_wallet = get_wallet_by_owner_id(db, db_user.uid)
+
+        sum_of_workout = 0
+        for item in db_workouts:
+            item.status = 1
+            db.merge(item)
+
+            sum_of_workout += item.token
+        db.commit()
+
+        logger.info(f"post_request_token_api db_workout: {db_workouts}")
+        return db_workouts
+
+    finally:
+        logger.info(f">>> post_request_token_api end")
 
 
 @router.get("/get_workout_by_date_and_owner_id")
