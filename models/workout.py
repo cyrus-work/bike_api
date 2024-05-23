@@ -1,6 +1,15 @@
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Date, DECIMAL
+from sqlalchemy import (
+    Column,
+    String,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Date,
+    DECIMAL,
+    func,
+)
 
 from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
@@ -28,6 +37,7 @@ class DailyWorkout(Base):
     point = Column(Integer, default=0)
     duration = Column(Integer, default=0)
     duration_sec = Column(Integer, default=0)
+    transaction_id = Column(String(64, collation="latin1_swedish_ci"))
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, onupdate=datetime.now)
 
@@ -259,5 +269,30 @@ def get_workouts_all(
         .order_by(DailyWorkout.created_at.desc())
         .offset(offset)
         .limit(limit)
+        .all()
+    )
+
+
+def get_sum_of_workout_duration_not_calculated_by_user_id(
+    db: SessionLocal, owner_id: str
+) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.duration))
+        .filter(DailyWorkout.owner_id == owner_id, DailyWorkout.status == 0)
+        .scalar()
+    )
+
+
+def get_workout_duration_not_calculated_by_user_id(
+    db: SessionLocal, owner_id: str
+) -> list[DailyWorkout]:
+    return (
+        db.query(DailyWorkout)
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 0,
+        )
+        .order_by(DailyWorkout.created_at.desc())
         .all()
     )

@@ -231,7 +231,7 @@ async def post_user_email_send_api(
         logger.info(f">>> post_user_email_send_api end")
 
 
-@router.post("/email_resend")
+@router.post("/email_auth")
 async def post_user_email_resend_api(
     data: UserEmailRequest, db: SessionLocal = Depends(get_db)
 ):
@@ -241,7 +241,6 @@ async def post_user_email_resend_api(
     :param data: UserEmailRequest 모델
     :param db: db session
     :return: UserSendMsg 모델
-
     """
     logger.info(f">>> post_user_email_resend_api start: {data}")
 
@@ -270,7 +269,7 @@ async def post_user_email_resend_api(
 
         logger.info(f"post_user_email_resend_api db_check: {email}, {checker}")
         return UserSendMsg(
-            code=200, content="Resend email", email=email, checker=checker
+            code=200, content="Auth email send", email=email, checker=checker
         )
 
     finally:
@@ -514,6 +513,9 @@ async def get_user_info_by_owner(user: User = Depends(get_current_user)):
         user_dict.pop("_sa_instance_state")
         user_dict.pop("uid")
         user_dict.pop("hashed_pwd")
+        user_dict.pop("wid")
+        user_dict.pop("wallet_created_at")
+        user_dict.pop("wallet_updated_at")
         logger.info(f"get_user_info_by_owner: {user_dict}")
         return user_dict
 
