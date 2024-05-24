@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 
 from internal.exceptions import AgencyNotExistsException
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
+from internal.jwt_auth import get_current_user
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from internal.utils import model_to_dict
 from messages.agency import AgencyCreateRequest, AgencyInfo
 from models.agency import make_agency, get_agency_by_owner_id
-from models.user import get_user_by_email
+from models.user import get_user_by_email, User
 
 router = APIRouter()
 
@@ -50,23 +50,17 @@ async def post_create_agency_api(
 
 
 @router.post("/get_own")
-async def get_agency_by_owner_api(
-    db: SessionLocal = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-):
+async def get_agency_by_owner_api(user: User = Depends(get_current_user)):
     """
     Get agency by owner email
 
-    :param token:
-    :param db:
+    :param user:
     :return:
     """
     logger.info(f">>> get_agency_by_owner_api start")
 
     try:
-        email = get_email_from_jwt(token)
-
-        db_user = get_user_by_email(db, email)
+        db_user, db = user
 
         db_agency = get_agency_by_owner_id(db, db_user.uid)
         if db_agency is None:

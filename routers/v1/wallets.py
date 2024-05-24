@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
+from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, get_current_user
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from messages.wallets import WalletMsg
-from models.user import get_user_by_email
+from models.user import get_user_by_email, User
 from models.wallet import make_wallet, get_wallets, get_wallet_by_owner_id
 
 router = APIRouter()
@@ -15,15 +15,13 @@ router = APIRouter()
 )
 async def post_wallets_create_api(
     req: WalletMsg,
-    db: SessionLocal = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
+    user: User = Depends(get_current_user),
 ):
     """
     Create wallet
 
     :param req:
-    :param db:
-    :param token:
+    :param user:
     :return:
     """
     logger.info(f">>> post_wallets_create_api start: {req}")
@@ -31,8 +29,7 @@ async def post_wallets_create_api(
     try:
         address = req.address
 
-        email = get_email_from_jwt(token)
-        db_user = get_user_by_email(db, email)
+        db_user, db = user
 
         db_wallet = get_wallet_by_owner_id(db, owner_id=db_user.uid)
         if db_wallet:
@@ -70,9 +67,7 @@ async def get_wallets_api(db: SessionLocal = Depends(get_db)):
 
 
 @router.get("/get_own")
-async def get_wallets_own_api(
-    db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
-):
+async def get_wallets_own_api(user: User = Depends(get_current_user)):
     """
     Get wallet by owner_id
 
@@ -81,8 +76,7 @@ async def get_wallets_own_api(
     logger.info(f">>> get_wallets_own_api start")
 
     try:
-        email = get_email_from_jwt(token)
-        db_user = get_user_by_email(db, email)
+        db_user, db = user
         owner_id = db_user.uid
 
         wallets = get_wallet_by_owner_id(db, owner_id=owner_id)
