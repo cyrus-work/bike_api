@@ -158,6 +158,19 @@ def get_workout_by_owner_id(
 
 
 @exception_handler
+def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
+    """
+    Get workout by wid
+
+    :param db: SessionLocal
+    :param wid: wid 값
+    :return: DailyWorkout
+        해당하는 wid의 workout
+    """
+    return db.query(DailyWorkout).filter_by(wid=wid).first()
+
+
+@exception_handler
 def get_workout_by_date_and_owner_id(
     db: SessionLocal,
     owner_id: str,

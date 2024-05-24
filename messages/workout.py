@@ -62,6 +62,15 @@ class WorkoutGetRequest(BaseModel):
         }
 
 
+class WorkoutWidGetRequest(BaseModel):
+    wid: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "wid": "T1A11060b3ea2a5be5a0620237afdb565bf211c896b29095f2467e2f4985a8fa",
+            }
+        }
 class WorkoutGetDurationRequest(BaseModel):
     start_date: str
     end_date: Optional[str] = None

@@ -20,6 +20,7 @@ from messages.workout import (
     WorkoutCreateMsg,
     WorkoutGetRequest,
     WorkoutGetDurationRequest,
+    WorkoutWidGetRequest,
 )
 from models.bike import get_bike_by_bike_no
 from models.last_workout import get_last_workout_by_owner_id
@@ -197,6 +198,34 @@ async def post_get_workout_api(
             db_workout = get_workout_by_date_and_owner_id(db, db_user.uid, date)
         else:
             db_workout = get_workout_by_owner_id(db, db_user.uid)
+
+        logger.info(f"post_get_workout_api db_workout: {db_workout}")
+        return db_workout
+
+    finally:
+        logger.info(f">>> post_get_workout_api end")
+
+
+@router.post("/get_workout_wid")
+async def post_get_workout_with_wid__api(
+    daily: WorkoutWidGetRequest,
+    db: SessionLocal = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    workout을 wid로 조회하는 API
+
+    :param daily: WorkoutGetRequest 모델
+    :param db: SessionLocal
+    :param token: JWT 토큰
+    :return: WorkoutCreateMsg 모델
+    """
+    logger.info(f"post_get_workout_with_wid__api start: {daily}")
+
+    try:
+        wid = daily.wid
+
+        db_workout = get_workout_by_wid(db, wid)
 
         logger.info(f"post_get_workout_api db_workout: {db_workout}")
         return db_workout

@@ -120,7 +120,6 @@ app.include_router(v1_agency_router, prefix="/agency", tags=["agency"])
 app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
 app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 
-app.include_router(v2_workout_router, prefix="/v2/workout", tags=["workout"])
 app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
 
 app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])
