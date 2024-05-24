@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, DateTime, func
 
+from internal.log import logger
 from internal.mysql_db import Base, SessionLocal
 from internal.utils import exception_handler, generate_hash
 
@@ -70,7 +71,19 @@ def get_user_check_by_email(db: SessionLocal, email: str):
     :param email: email value
     :return: UserCheck
     """
-    return db.query(UserCheck).filter_by(email=email).first()
+    return db.query(UserCheck).filter_by(email=email).order_by(UserCheck.created_at.desc()).first()
+
+
+@exception_handler
+def get_user_checks_by_email(db: SessionLocal, email: str) -> list[UserCheck]:
+    """
+    Get user checks by email
+
+    :param db: database session
+    :param email: email value
+    :return: list[UserCheck]
+    """
+    return db.query(UserCheck).filter_by(email=email).all()
 
 
 @exception_handler
@@ -83,3 +96,11 @@ def update_user_check_verified(db: SessionLocal, email: str):
     """
     db.query(UserCheck).filter_by(email=email).update({"verified": "Y"})
     return True
+
+
+@exception_handler
+def clean_checkers(db: SessionLocal, email: str):
+    db_check = get_user_checks_by_email(db, email)
+    for item in db_check:
+        db.delete(item)
+    db.commit()

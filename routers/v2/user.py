@@ -42,7 +42,12 @@ from models.user import (
     get_user_exist_by_email,
     User,
 )
-from models.user_check import make_user_check, get_user_check_by_email
+from models.user_check import (
+    make_user_check,
+    get_user_check_by_email,
+    get_user_checks_by_email,
+    clean_checkers,
+)
 from models.user_wallet import get_user_wallets, get_user_info_by_uid
 
 router = APIRouter()
@@ -206,17 +211,13 @@ async def post_user_email_send_api(
         db_user = get_user_exist_by_email(db, email)
         logger.info(f"post_user_email_send_api: {db_user}")
 
-        db_check = get_user_check_by_email(db, email)
-        if db_check is None:
-            logger.info(f"post_user_email_send_api: new user")
-            db_checkout = make_user_check(email=email, checker=checker)
-            db.add(db_checkout)
-            db.commit()
-        else:
-            logger.info(f"post_user_email_send_api: resend user")
-            db_check.checker = checker
-            db.merge(db_check)
-            db.commit()
+        # 이전에 사용한 db_check를 삭제
+        clean_checkers(db, email)
+
+        logger.info(f"post_user_email_send_api: new user")
+        db_checkout = make_user_check(email=email, checker=checker)
+        db.add(db_checkout)
+        db.commit()
 
         user_json["checker"] = checker
 
@@ -247,7 +248,10 @@ async def post_user_email_resend_api(
     try:
         email = data.email
 
-        db_user = get_user_exist_by_email(db, email)
+        # 이전에 사용한 db_check를 삭제
+        clean_checkers(db, email)
+
+        db_user = get_user_by_email(db, email)
         if db_user is None:
             raise UserNotExistsException
 
@@ -361,6 +365,36 @@ async def email_confirm_check_user_api(
 
     finally:
         logger.info(f">>> email_confirm_check_user_api end")
+
+
+@router.post("/email_auth_confirm")
+async def post_user_email_auth_confirm_api(
+    data: UserEmailRequest, db: SessionLocal = Depends(get_db)
+):
+    """
+    이메일 인증 확인
+
+    :param data: UserEmailRequest 모델
+    :param db: db session
+    :return:
+    """
+    logger.info(f">>> post_user_email_auth_confirm_api: {data}")
+
+    try:
+        email = data.email
+        db_check = get_user_check_by_email(db, email)
+        if db_check is None:
+            raise UserCheckerNotExistException
+
+        if db_check.verified == "Y":
+            msg = {"code": 200, "content": "Email confirmed"}
+            logger.info(f"post_user_email_auth_confirm_api msg: {msg}")
+            return JSONResponse(status_code=200, content=msg)
+        else:
+            raise UserEmailNotConfirmException
+
+    finally:
+        logger.info(f">>> post_user_email_auth_confirm_api end")
 
 
 @router.post("/update")
