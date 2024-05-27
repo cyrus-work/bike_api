@@ -132,3 +132,10 @@ class AdminRequiredException(Exception):
 
     def __init__(self, message="Admin required"):
         super().__init__(message)
+
+
+class RewardWorkoutNotExistsException(Exception):
+    """Reward workout이 없을 때 발생하는 예외"""
+
+    def __init__(self, message="Reward workout not exists"):
+        super().__init__(message)

@@ -82,6 +82,26 @@ class UserUpdateRequest(BaseModel):
         }
 
 
+class UserPwChangeRequest(BaseModel):
+    """
+    User password change model
+
+    password: User password
+    email: User email
+    """
+
+    prev_password: str
+    password: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "prev_password": "test",
+                "password": "test_new",
+            }
+        }
+
+
 class UserEmailRequest(BaseModel):
     """
     User email model

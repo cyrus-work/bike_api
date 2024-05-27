@@ -66,10 +66,11 @@ class TransactionHistory(Base):
 
     def __repr__(self):
         return (
-            f"TransactionHistory(tid={self.tid}, wid={self.wid}, request_coin={self.request_coin}, amount_req={self.amount_req}, "
-            f"amount_res={self.amount_res}, amount={self.amount}, fee_operation={self.fee_operation}, deposit_at={self.deposit_at}, "
+            f"<TransactionHistory(tid={self.tid}, wid={self.wid}, amount_req={self.amount_req}, "
+            f"amount_res={self.amount_res}, fee_operation={self.fee_operation}, deposit_at={self.deposit_at}, "
             f"result_at={self.result_at}, txn_completed_at={self.txn_completed_at}, operation_at={self.operation_at}, "
-            f"txn_hash={self.txn_hash}, msg={self.msg}, status={self.status})"
+            f"txn_hash={self.txn_hash}, msg={self.msg}, status={self.status}, "
+            f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )
 
 

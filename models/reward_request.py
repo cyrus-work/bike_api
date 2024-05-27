@@ -18,11 +18,11 @@ class TransactionOut(Base):
     __table_args__ = {"comment": "트랜젝션 테이블"}
 
     tid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
-    wallet = Column(String(128), nullable=False)
+    wallet_id = Column(String(64, collation="latin1_swedish_ci"))
     coin = Column(DECIMAL(36, 18), nullable=False, default=0)
     operating_fee = Column(DECIMAL(36, 18), nullable=False, default=0)
     transaction_hash = Column(
-        CHAR(64, collation="latin1_swedish_ci"), nullable=True, default=None
+        CHAR(66, collation="latin1_swedish_ci"), nullable=True, default=None
     )
     msg = Column(String(255), nullable=True, default=None)
     tx_completed_at = Column(DateTime, nullable=True, default=None)
@@ -34,7 +34,7 @@ class TransactionOut(Base):
     deposit_at = Column(DateTime, nullable=True, default=None)
     result_at = Column(DateTime, nullable=True, default=None)
     created_at = Column(DateTime, nullable=False, default=datetime.now())
-    updated_at = Column(DateTime, nullable=False, onupdate=datetime.now())
+    updated_at = Column(DateTime, onupdate=datetime.now())
 
     def __repr__(self):
         return (
@@ -63,7 +63,7 @@ def make_transaction_out(
     operating_fee = coin * 0.2
     return TransactionOut(
         tid=tid,
-        wallet=wallet,
+        wallet_id=wallet,
         coin=coin,
         operating_fee=operating_fee,
         status=0,

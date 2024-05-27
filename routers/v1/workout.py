@@ -196,8 +196,7 @@ async def post_get_workout_api(
 
 @router.post("/get_workout_wid")
 async def post_get_workout_with_wid__api(
-    daily: WorkoutWidGetRequest,
-    user: User = Depends(get_current_user),
+    daily: WorkoutWidGetRequest, user: User = Depends(get_current_user)
 ):
     """
     workout을 wid로 조회하는 API
@@ -206,7 +205,7 @@ async def post_get_workout_with_wid__api(
     :param user: User, db 정보
     :return: WorkoutCreateMsg 모델
     """
-    logger.info(f"post_get_workout_with_wid__api start: {daily}")
+    logger.info(f">>> post_get_workout_with_wid__api start: {daily}")
 
     try:
         wid = daily.wid

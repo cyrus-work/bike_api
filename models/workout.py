@@ -37,7 +37,9 @@ class DailyWorkout(Base):
     point = Column(Integer, default=0)
     duration = Column(Integer, default=0)
     duration_sec = Column(Integer, default=0)
-    transaction_id = Column(String(64, collation="latin1_swedish_ci"))
+    transaction_id = Column(
+        String(64, collation="latin1_swedish_ci"), ForeignKey("transaction_out.tid")
+    )
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, onupdate=datetime.now)
 
@@ -305,6 +307,7 @@ def get_workout_duration_not_calculated_by_user_id(
             DailyWorkout.owner_id == owner_id,
             DailyWorkout.status == 0,
             DailyWorkout.ptype == 0,
+            DailyWorkout.transaction_id.is_(None),
         )
         .order_by(DailyWorkout.created_at.desc())
         .all()

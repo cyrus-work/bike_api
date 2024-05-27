@@ -20,7 +20,10 @@ from internal.exceptions import (
     LastWorkoutNotExistsException,
     AgencyNotExistsException,
     BikeIdNotMatchException,
-    CredentialException, JWTErrorsException, AdminRequiredException,
+    CredentialException,
+    JWTErrorsException,
+    AdminRequiredException,
+    RewardWorkoutNotExistsException,
 )
 from internal.exceptions_handlers import (
     integrity_exception_handler,
@@ -43,19 +46,25 @@ from internal.exceptions_handlers import (
     last_workout_not_exist_exception_handler,
     agency_not_exist_exception_handler,
     bike_id_not_match_exception_handler,
-    credentials_exception_handler, jwt_errors_exception_handler, admin_required_exception_handler,
+    credentials_exception_handler,
+    jwt_errors_exception_handler,
+    admin_required_exception_handler,
+    reward_workout_not_exist_exception_handler,
 )
 from internal.mysql_db import Base, engine
+
 from routers.admin.bike import router as admin_bike_router
 from routers.admin.wallet import router as admin_wallet_router
 from routers.admin.workout import router as admin_workout_router
+
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.user import router as v1_user_router
 from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
+from routers.v1.rewards import router as v1_rewards_router
+
 from routers.v2.user import router as v2_user_router
-from routers.v2.workout import router as v2_workout_router
 
 app = FastAPI()
 
@@ -101,6 +110,9 @@ app.add_exception_handler(BikeIdNotMatchException, bike_id_not_match_exception_h
 app.add_exception_handler(CredentialException, credentials_exception_handler)
 app.add_exception_handler(JWTErrorsException, jwt_errors_exception_handler)
 app.add_exception_handler(AdminRequiredException, admin_required_exception_handler)
+app.add_exception_handler(
+    RewardWorkoutNotExistsException, reward_workout_not_exist_exception_handler
+)
 
 # 모든 도메인에서 접근 가능하도록 설정
 origins = ["*"]
@@ -121,6 +133,7 @@ app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
 app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 
 app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
+app.include_router(v1_rewards_router, prefix="/v1/rewards", tags=["rewards"])
 
 app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])
 app.include_router(admin_bike_router, prefix="/admin/bike", tags=["admin"])

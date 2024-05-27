@@ -34,6 +34,7 @@ from messages.user import (
     UserEmailRequest,
     UserSendMsg,
     UserUpdateRequest,
+    UserPwChangeRequest,
 )
 from models.user import (
     get_user_by_email,
@@ -254,6 +255,8 @@ async def post_user_email_resend_api(
         db_user = get_user_by_email(db, email)
         if db_user is None:
             raise UserNotExistsException
+        if db_user.status == 0:
+            raise UserNotExistsException
 
         checker = generate_hash()
         db_checker = make_user_check(email=email, checker=checker)
@@ -432,7 +435,10 @@ async def update_user_by_email_api(
         if db_user is None:
             raise UserNotExistsException
 
-        db_user.name = req.name
+        if req.name is not None:
+            db_user.name = name
+        if req.password is not None:
+            db_user.hashed_pwd = get_password_hash(req.password)
         db.merge(db_user)
         db.commit()
 
@@ -555,3 +561,38 @@ async def get_user_info_by_owner(user: User = Depends(get_current_user)):
 
     finally:
         logger.info(f">>> get_user_info_by_owner end")
+
+
+@router.post("/pw_change")
+async def post_user_pw_change_api(
+    req: UserPwChangeRequest, user: User = Depends(get_current_user)
+):
+    """
+    사용자 비밀번호 변경
+
+    :param req: UserUpdateRequest 모델
+    :param user: User 모델
+    :return:
+    """
+    logger.info(f">>> post_user_pw_change_api: {req}")
+
+    try:
+        db_user, db = user
+
+        prev_password = req.prev_password
+        password = req.password
+        email = db_user.email
+
+        if not verify_password(prev_password, db_user.hashed_pwd):
+            raise UserPasswordNotMatchException
+
+        db_user.hashed_pwd = get_password_hash(password)
+
+        db.merge(db_user)
+        db.commit()
+
+        logger.info(f"post_user_pw_change_api: {email} password change success")
+        return {"message": "password change success"}
+
+    finally:
+        logger.info(f">>> post_user_pw_change_api end")
