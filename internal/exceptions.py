@@ -22,35 +22,35 @@ class JWTDataExpiredException(ExpiredSignatureError):
         super().__init__(message)
 
 
-class UserEmailNotConfirmException(Exception):
+class EmailNotConfirmException(Exception):
     """사용자 이메일 확인 예외"""
 
     def __init__(self, message="User email not confirmed"):
         super().__init__(message)
 
 
-class UserCheckerNotExistException(Exception):
+class CheckerNotExistException(Exception):
     """사용자 체크가 없을 때 발생하는 예외"""
 
     def __init__(self, message="User checker not exists"):
         super().__init__(message)
 
 
-class UserCheckerNotMatchException(Exception):
+class CheckerNotMatchException(Exception):
     """사용자 체크가 일치하지 않을 때 발생하는 예외"""
 
     def __init__(self, message="User checker not match"):
         super().__init__(message)
 
 
-class UserEmailNotExistException(Exception):
+class EmailNotExistException(Exception):
     """사용자 이메일이 없을 때 발생하는 예외"""
 
     def __init__(self, message="User email not exists"):
         super().__init__(message)
 
 
-class JWTRefreshTokenNotExistException(ExpiredSignatureError):
+class JWTRefreshNotExistException(ExpiredSignatureError):
     """JWT 리프레시 토큰이 만료되었을 때 발생하는 예외"""
 
     def __init__(self, message="JWT refresh token not exists"):
@@ -64,7 +64,7 @@ class EmailVerifiedException(Exception):
         super().__init__(message)
 
 
-class UserPasswordNotMatchException(Exception):
+class UserPwNotMatchException(Exception):
     """사용자 비밀번호가 일치하지 않을 때 발생하는 예외"""
 
     def __init__(self, message="User password not match"):
@@ -78,7 +78,7 @@ class LastWorkoutIdNotMatchException(Exception):
         super().__init__(message)
 
 
-class WorkoutLastOwnerNotMatchException(Exception):
+class LastWorkoutOwnerNotMatchException(Exception):
     """Workout 마지막 소유자가 일치하지 않을 때 발생하는 예외"""
 
     def __init__(self, message="Workout last owner not match"):

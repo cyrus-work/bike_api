@@ -6,16 +6,16 @@ from sqlalchemy.exc import IntegrityError
 from internal.exceptions import (
     JWTDataExpiredException,
     UserExistsException,
-    UserEmailNotConfirmException,
+    EmailNotConfirmException,
     UserNotExistsException,
-    UserCheckerNotExistException,
-    UserCheckerNotMatchException,
-    UserEmailNotExistException,
-    JWTRefreshTokenNotExistException,
+    CheckerNotExistException,
+    CheckerNotMatchException,
+    EmailNotExistException,
+    JWTRefreshNotExistException,
     EmailVerifiedException,
-    UserPasswordNotMatchException,
+    UserPwNotMatchException,
     LastWorkoutIdNotMatchException,
-    WorkoutLastOwnerNotMatchException,
+    LastWorkoutOwnerNotMatchException,
     BikeNotExistsException,
     LastWorkoutNotExistsException,
     AgencyNotExistsException,
@@ -32,18 +32,18 @@ from internal.exceptions_handlers import (
     invalid_token_exception_handler,
     unexpected_exception_handler,
     user_exist_exception_handler,
-    user_email_confirm_exception_handler,
+    email_confirm_exception_handler,
     user_not_exist_exception_handler,
-    user_checker_not_exist_exception_handler,
-    user_checker_not_match_exception_handler,
-    user_email_not_exist_exception_handler,
-    jwt_refresh_token_not_exist_exception_handler,
+    checker_not_exist_exception_handler,
+    checker_not_match_exception_handler,
+    email_not_exist_exception_handler,
+    jwt_refresh_not_exist_exception_handler,
     email_verified_exception_handler,
-    user_password_not_match_exception_handler,
+    user_pw_not_match_exception_handler,
     workout_last_id_not_match_exception_handler,
     workout_last_owner_not_match_exception_handler,
     bike_not_exist_exception_handler,
-    last_workout_not_exist_exception_handler,
+    workout_last_not_exist_exception_handler,
     agency_not_exist_exception_handler,
     bike_id_not_match_exception_handler,
     credentials_exception_handler,
@@ -52,18 +52,15 @@ from internal.exceptions_handlers import (
     reward_workout_not_exist_exception_handler,
 )
 from internal.mysql_db import Base, engine
-
 from routers.admin.bike import router as admin_bike_router
 from routers.admin.wallet import router as admin_wallet_router
 from routers.admin.workout import router as admin_workout_router
-
 from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
+from routers.v1.rewards import router as v1_rewards_router
 from routers.v1.user import router as v1_user_router
 from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
-from routers.v1.rewards import router as v1_rewards_router
-
 from routers.v2.user import router as v2_user_router
 
 app = FastAPI()
@@ -76,35 +73,25 @@ app.add_exception_handler(InvalidTokenError, invalid_token_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
 app.add_exception_handler(UserExistsException, user_exist_exception_handler)
 app.add_exception_handler(UserNotExistsException, user_not_exist_exception_handler)
+app.add_exception_handler(EmailNotConfirmException, email_confirm_exception_handler)
+app.add_exception_handler(CheckerNotExistException, checker_not_exist_exception_handler)
+app.add_exception_handler(CheckerNotMatchException, checker_not_match_exception_handler)
+app.add_exception_handler(EmailNotExistException, email_not_exist_exception_handler)
 app.add_exception_handler(
-    UserEmailNotConfirmException, user_email_confirm_exception_handler
-)
-app.add_exception_handler(
-    UserCheckerNotExistException, user_checker_not_exist_exception_handler
-)
-app.add_exception_handler(
-    UserCheckerNotMatchException, user_checker_not_match_exception_handler
-)
-app.add_exception_handler(
-    UserEmailNotExistException, user_email_not_exist_exception_handler
-)
-app.add_exception_handler(
-    JWTRefreshTokenNotExistException, jwt_refresh_token_not_exist_exception_handler
+    JWTRefreshNotExistException, jwt_refresh_not_exist_exception_handler
 )
 app.add_exception_handler(EmailVerifiedException, email_verified_exception_handler)
-app.add_exception_handler(
-    UserPasswordNotMatchException, user_password_not_match_exception_handler
-)
+app.add_exception_handler(UserPwNotMatchException, user_pw_not_match_exception_handler)
 app.add_exception_handler(
     LastWorkoutIdNotMatchException, workout_last_id_not_match_exception_handler
 )
 app.add_exception_handler(
-    WorkoutLastOwnerNotMatchException, workout_last_owner_not_match_exception_handler
+    LastWorkoutNotExistsException, workout_last_not_exist_exception_handler
+)
+app.add_exception_handler(
+    LastWorkoutOwnerNotMatchException, workout_last_owner_not_match_exception_handler
 )
 app.add_exception_handler(BikeNotExistsException, bike_not_exist_exception_handler)
-app.add_exception_handler(
-    LastWorkoutNotExistsException, last_workout_not_exist_exception_handler
-)
 app.add_exception_handler(AgencyNotExistsException, agency_not_exist_exception_handler)
 app.add_exception_handler(BikeIdNotMatchException, bike_id_not_match_exception_handler)
 app.add_exception_handler(CredentialException, credentials_exception_handler)

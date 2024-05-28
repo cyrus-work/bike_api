@@ -8,7 +8,7 @@ from internal.exceptions import (
     BikeNotExistsException,
     LastWorkoutNotExistsException,
     LastWorkoutIdNotMatchException,
-    WorkoutLastOwnerNotMatchException,
+    LastWorkoutOwnerNotMatchException,
 )
 from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, decode_data_from_jwt
 from internal.log import logger
@@ -134,7 +134,7 @@ async def post_workout_keep_api(
             raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            raise WorkoutLastOwnerNotMatchException
+            raise LastWorkoutOwnerNotMatchException
 
         db_workout = get_workout_by_wid(db, db_last_workout.wid)
 

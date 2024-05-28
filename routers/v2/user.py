@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from internal.app_config import mail_config, auth
 from internal.exceptions import (
     UserExistsException,
-    UserEmailNotConfirmException,
+    EmailNotConfirmException,
     UserNotExistsException,
-    UserCheckerNotExistException,
-    UserCheckerNotMatchException,
-    UserEmailNotExistException,
-    JWTRefreshTokenNotExistException,
-    UserPasswordNotMatchException,
+    CheckerNotExistException,
+    CheckerNotMatchException,
+    EmailNotExistException,
+    JWTRefreshNotExistException,
+    UserPwNotMatchException,
 )
 from internal.html_msg import html_ok_msg, html_ng_msg
 from internal.jwt_auth import (
@@ -81,7 +81,7 @@ async def post_login_user_api(
             raise UserNotExistsException
 
         if not verify_password(user.password, db_user.hashed_pwd):
-            raise UserPasswordNotMatchException
+            raise UserPwNotMatchException
 
         token_msg = token_make_function(email)
 
@@ -127,7 +127,7 @@ async def post_create_user_api(
         db_user = get_user_by_email(db, user.email)
         if db_user is None:
             # 사용자 정보가 없으면 가입절차 위반임.
-            raise UserEmailNotExistException
+            raise EmailNotExistException
         elif db_user.status != 0:
             # status 값이 0이 아니면 사용자가 존재하는 것으로 간주한다.
             raise UserExistsException
@@ -135,11 +135,11 @@ async def post_create_user_api(
         db_user_checker = get_user_check_by_email(db, email)
         if db_user_checker is None:
             # 사용자 check용 키가 없다면 절차를 제대로 이행하지 못한 것임.
-            raise UserCheckerNotExistException
+            raise CheckerNotExistException
 
         if db_user_checker.checker != checker:
             # 사용자 check용 키가 잘못되었다면 제대로된 키를 사용하여야 함.
-            raise UserCheckerNotMatchException
+            raise CheckerNotMatchException
 
         db_user = get_user_by_email(db, email)
         db_user.hashed_pwd = get_password_hash(password)
@@ -312,7 +312,7 @@ async def email_confirm_user_api(
 
         db_check = get_user_check_by_email(db, email)
         if db_check is None:
-            raise UserCheckerNotExistException
+            raise CheckerNotExistException
 
         if db_check.checker == check_key:
 
@@ -334,7 +334,7 @@ async def email_confirm_user_api(
             return HTMLResponse(content=html_ok_content, status_code=200)
 
         else:
-            raise UserCheckerNotMatchException
+            raise CheckerNotMatchException
 
     finally:
         logger.info(f">>> email_confirm_user_api end")
@@ -366,7 +366,7 @@ async def email_confirm_check_user_api(
             logger.info(f"email_confirm_check_user_api msg: {msg}")
             return JSONResponse(status_code=200, content=msg)
         else:
-            raise UserEmailNotConfirmException
+            raise EmailNotConfirmException
 
     finally:
         logger.info(f">>> email_confirm_check_user_api end")
@@ -389,14 +389,14 @@ async def post_user_email_auth_confirm_api(
         email = data.email
         db_check = get_user_check_by_email(db, email)
         if db_check is None:
-            raise UserCheckerNotExistException
+            raise CheckerNotExistException
 
         if db_check.verified == "Y":
             msg = {"code": 200, "content": "Email confirmed"}
             logger.info(f"post_user_email_auth_confirm_api msg: {msg}")
             return JSONResponse(status_code=200, content=msg)
         else:
-            raise UserEmailNotConfirmException
+            raise EmailNotConfirmException
 
     finally:
         logger.info(f">>> post_user_email_auth_confirm_api end")
@@ -422,13 +422,13 @@ async def update_user_by_email_api(
 
         db_checker = get_user_check_by_email(db, email)
         if db_checker is None:
-            raise UserCheckerNotExistException
+            raise CheckerNotExistException
 
         if db_checker.checker != checker:
-            raise UserCheckerNotMatchException
+            raise CheckerNotMatchException
 
         if db_checker.verified != "Y":
-            raise UserEmailNotConfirmException
+            raise EmailNotConfirmException
 
         db.merge(db_checker)
         db.flush()
@@ -500,10 +500,10 @@ async def refresh_token_api(
         refresh = info.get("refresh")
 
         if email is None:
-            raise UserEmailNotExistException
+            raise EmailNotExistException
 
         if refresh is None:
-            raise JWTRefreshTokenNotExistException
+            raise JWTRefreshNotExistException
 
         user = get_user_by_email(db, email)
         if user is None:
@@ -608,7 +608,7 @@ async def post_user_pw_change_api(
         email = db_user.email
 
         if not verify_password(prev_password, db_user.hashed_pwd):
-            raise UserPasswordNotMatchException
+            raise UserPwNotMatchException
 
         db_user.hashed_pwd = get_password_hash(password)
 

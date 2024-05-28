@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from internal.app_config import auth
 from internal.exceptions import (
     JWTDataExpiredException,
-    UserEmailNotExistException,
+    EmailNotExistException,
     JWTErrorsException,
     CredentialException,
     AdminRequiredException,
@@ -160,7 +160,7 @@ def get_current_user(
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
         email: str = payload.get("email")
         if email is None:
-            raise UserEmailNotExistException
+            raise EmailNotExistException
     except jwt.PyJWTError:
         raise JWTErrorsException
     user = get_user_by_email(db, email)

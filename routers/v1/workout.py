@@ -2,20 +2,18 @@ from datetime import datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
 from internal.app_config import reward
 from internal.exceptions import (
     LastWorkoutIdNotMatchException,
-    WorkoutLastOwnerNotMatchException,
+    LastWorkoutOwnerNotMatchException,
     BikeIdNotMatchException,
     LastWorkoutNotExistsException,
     BikeNotExistsException,
     UserNotExistsException,
 )
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, get_current_user
+from internal.jwt_auth import get_current_user
 from internal.log import logger
-from internal.mysql_db import SessionLocal, get_db
 from messages.workout import (
     WorkoutCreateRequest,
     WorkoutKeepRequest,
@@ -26,7 +24,7 @@ from messages.workout import (
 )
 from models.bike import get_bike_by_bike_no
 from models.last_workout import get_last_workout_by_owner_id
-from models.user import get_user_by_email, User
+from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import (
     get_workout_by_owner_id,
@@ -120,7 +118,7 @@ async def post_workout_keep_api(
             raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            raise WorkoutLastOwnerNotMatchException
+            raise LastWorkoutOwnerNotMatchException
 
         db_bike = get_bike_by_bike_no(db, bike_serial)
 

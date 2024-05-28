@@ -2,9 +2,7 @@ import traceback
 
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, Response
-from jwt import ExpiredSignatureError, InvalidTokenError
 
-from internal.exceptions import JWTDataExpiredException
 from internal.log import logger
 from internal.mysql_db import SessionLocal
 
@@ -16,7 +14,7 @@ def db_clean():
 
 
 async def expired_signature_exception_handler(
-    request: Request, exc: ExpiredSignatureError
+    request: Request, exc: Exception
 ) -> Response:
     logger.info(f"JWT token expired: {traceback.format_exc()}")
     msg = {"code": 101, "content": "JWT token expired."}
@@ -32,7 +30,7 @@ async def integrity_exception_handler(request: Request, exc: Exception) -> Respo
 
 
 async def expired_data_exception_handler(
-    request: Request, exc: JWTDataExpiredException
+    request: Request, exc: Exception
 ) -> Response:
     logger.error(f"JWT data has expired: {traceback.format_exc()}")
     msg = {"code": 103, "content": "JWT data has expired"}
@@ -40,7 +38,7 @@ async def expired_data_exception_handler(
 
 
 async def invalid_token_exception_handler(
-    request: Request, exc: InvalidTokenError
+    request: Request, exc: Exception
 ) -> Response:
     logger.error(f"Invalid JWT token: {traceback.format_exc()}")
     msg = {"code": 104, "content": "Invalid JWT token"}
@@ -76,7 +74,7 @@ async def user_not_exist_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def user_email_confirm_exception_handler(
+async def email_confirm_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"User email not confirmed: {traceback.format_exc()}")
@@ -86,7 +84,7 @@ async def user_email_confirm_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def user_checker_not_exist_exception_handler(
+async def checker_not_exist_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"User checker not found: {traceback.format_exc()}")
@@ -96,7 +94,7 @@ async def user_checker_not_exist_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def user_checker_not_match_exception_handler(
+async def checker_not_match_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"User checker not match: {traceback.format_exc()}")
@@ -106,7 +104,7 @@ async def user_checker_not_match_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def user_email_not_exist_exception_handler(
+async def email_not_exist_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"User email not found: {traceback.format_exc()}")
@@ -116,7 +114,7 @@ async def user_email_not_exist_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def jwt_refresh_token_not_exist_exception_handler(
+async def jwt_refresh_not_exist_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"JWT refresh token not found: {traceback.format_exc()}")
@@ -132,7 +130,7 @@ async def email_verified_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def user_password_not_match_exception_handler(
+async def user_pw_not_match_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"User password not match: {traceback.format_exc()}")
@@ -172,7 +170,7 @@ async def bike_not_exist_exception_handler(
     return JSONResponse(status_code=410, content=msg)
 
 
-async def last_workout_not_exist_exception_handler(
+async def workout_last_not_exist_exception_handler(
     request: Request, exc: Exception
 ) -> Response:
     logger.error(f"Last workout not found: {traceback.format_exc()}")
