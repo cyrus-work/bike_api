@@ -5,6 +5,7 @@ import traceback
 from datetime import time
 from email.message import EmailMessage
 from functools import wraps
+from typing import re
 
 from passlib.context import CryptContext
 from sqlalchemy import inspect
@@ -105,3 +106,20 @@ def model_to_dict(model):
     모델 인스턴스를 딕셔너리로 변환합니다.
     """
     return {c.key: getattr(model, c.key) for c in inspect(model).mapper.column_attrs}
+
+
+def is_valid_polygon_address(address):
+    """
+    Validate a Polygon (MATIC) address.
+
+    Args:
+    address (str): The Polygon address to validate.
+
+    Returns:
+    bool: True if the address is valid, False otherwise.
+    """
+    if isinstance(address, str):
+        # Regular expression to check for a valid Ethereum-based address
+        if re.fullmatch(r"0x[a-fA-F0-9]{40}", address):
+            return True
+    return False

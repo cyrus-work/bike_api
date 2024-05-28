@@ -14,9 +14,7 @@ class User(Base):
     uid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
     type = Column(Integer, default=0)
     name = Column(String(100, collation="utf8mb4_unicode_ci"))
-    email = Column(
-        String(120, collation="latin1_swedish_ci"), unique=True, nullable=True
-    )
+    email = Column(String(120, collation="latin1_swedish_ci"), unique=True)
     hashed_pwd = Column(String(60, collation="latin1_swedish_ci"))
     email_verified = Column(CHAR(1), default="N", comment="Y: 인증됨, N: 미인증")
     agreement1 = Column(CHAR(1), default="N")

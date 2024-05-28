@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends
 
 from internal.exceptions import RewardWorkoutNotExistsException
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt, get_current_user
-from internal.mysql_db import SessionLocal, get_db
+from internal.jwt_auth import get_current_user
 from internal.log import logger
 from models.reward_request import make_transaction_out
-
-from models.user import get_user_by_email, User
+from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import get_workout_duration_not_calculated_by_user_id
-
 
 router = APIRouter()
 
@@ -34,7 +31,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         if len(db_workouts) == 0:
             raise RewardWorkoutNotExistsException
 
-        txn = make_transaction_out(db_wallet.wid, 0)
+        txn = make_transaction_out(db_wallet.address)
 
         sum_coin = 0
         for item in db_workouts:
@@ -43,7 +40,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
             db.merge(item)
             db.flush()
 
-        txn.coin = sum_coin
+        txn.amount = sum_coin
         db.add(txn)
         db.commit()
         db.refresh(txn)
