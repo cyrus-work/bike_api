@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse, HTMLResponse
 
-from internal.app_config import mail_config
+from internal.app_config import mail_config, auth
 from internal.exceptions import (
     UserExistsException,
     UserEmailNotConfirmException,
@@ -22,6 +24,7 @@ from internal.jwt_auth import (
     token_make_function,
     access_token_make_function,
     get_current_user,
+    create_refresh_token,
 )
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
@@ -46,7 +49,6 @@ from models.user import (
 from models.user_check import (
     make_user_check,
     get_user_check_by_email,
-    get_user_checks_by_email,
     clean_checkers,
 )
 from models.user_wallet import get_user_wallets, get_user_info_by_uid
@@ -515,6 +517,28 @@ async def refresh_token_api(
 
     finally:
         logger.info(f">>> refresh_token_api end")
+
+
+# 리프레시 토큰 재발행 라우터
+@router.post(
+    "/refresh_one",
+)
+async def refresh_refresh_token(user: User = Depends(get_current_user)):
+    try:
+        db_user, db = user
+
+        refresh_token_expires = timedelta(minutes=auth["refresh_token_expires"])
+        logger.info(f"refresh_refresh_token user: {db_user.email}")
+        refresh_token = create_refresh_token(
+            data={"email": db_user.email, "refresh": True},
+            expires_delta=refresh_token_expires,
+        )
+        msg = {"refresh_token": refresh_token, "token_type": "bearer"}
+        logger.info(f"refresh_refresh_token: {msg}")
+        return JSONResponse(status_code=200, content=msg)
+
+    finally:
+        logger.info(f">>> refresh_refresh_token end")
 
 
 @router.get("/all_users_info")

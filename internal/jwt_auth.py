@@ -1,4 +1,3 @@
-import json
 import traceback
 from datetime import datetime, timedelta
 from typing import Optional
@@ -12,6 +11,7 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+from internal.app_config import auth
 from internal.exceptions import (
     JWTDataExpiredException,
     UserEmailNotExistException,
@@ -25,12 +25,9 @@ from internal.utils import verify_password, exception_handler
 from messages.jwt_auth import TokenData
 from models.user import get_user_by_email, User
 
-with open("./configs/auth.json") as f:
-    auth = json.load(f)
-    SECRET_KEY = auth["secret"]
-    DATA_SECRET_KEY = auth["data_secret"]
-    data_expires = auth["data_expires"]
-    f.close()
+SECRET_KEY = auth["secret"]
+DATA_SECRET_KEY = auth["data_secret"]
+data_expires = auth["data_expires"]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8000/users/login")
 
