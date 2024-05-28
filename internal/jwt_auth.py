@@ -1,5 +1,5 @@
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
@@ -53,13 +53,16 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     :return:
     """
     logger.info(f"create_access_token: {data}, {expires_delta}")
-    logger.info(f"secret_key: {SECRET_KEY}")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
         expire = datetime.now() + timedelta(minutes=auth["access_token_expires"])
+    logger.info(f"create_access_token expire: {expire.timestamp()}")
+    # localtime을 utc로 변경
+    expire = expire.astimezone(timezone.utc)
     to_encode.update({"exp": expire})
+    logger.info(f"create_access_token to_encode: {to_encode}")
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
@@ -77,6 +80,9 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.now() + expires_delta
     else:
         expire = datetime.now() + timedelta(days=7)
+    logger.info(f"create_refresh_token expire: {expire.timestamp()}")
+    # localtime을 utc로 변경
+    expire = expire.astimezone(timezone.utc)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -214,6 +220,7 @@ def token_make_function(email: str):
         data={"email": email, "refresh": True},
         expires_delta=refresh_token_expires,
     )
+    logger.info(f"token_make_function expires access_token: {access_token_expires}")
 
     token_msg = {
         "access_token": access_token,
