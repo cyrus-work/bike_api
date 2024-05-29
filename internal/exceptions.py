@@ -139,3 +139,10 @@ class RewardWorkoutNotExistsException(Exception):
 
     def __init__(self, message="Reward workout not exists"):
         super().__init__(message)
+
+
+class LastWorkoutActiveNotExistException(Exception):
+    """마지막 workout이 없을 때 발생하는 예외"""
+
+    def __init__(self, message="Last workout active not exists"):
+        super().__init__(message)

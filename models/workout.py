@@ -41,7 +41,7 @@ class DailyWorkout(Base):
         String(64, collation="latin1_swedish_ci"), ForeignKey("transaction_out.tid")
     )
     created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, onupdate=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     def __repr__(self):
         return (

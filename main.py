@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from jwt import InvalidTokenError, ExpiredSignatureError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from internal.exceptions import (
     JWTDataExpiredException,
@@ -24,6 +24,7 @@ from internal.exceptions import (
     JWTErrorsException,
     AdminRequiredException,
     RewardWorkoutNotExistsException,
+    LastWorkoutActiveNotExistException,
 )
 from internal.exceptions_handlers import (
     integrity_exception_handler,
@@ -50,6 +51,8 @@ from internal.exceptions_handlers import (
     jwt_errors_exception_handler,
     admin_required_exception_handler,
     reward_workout_not_exist_exception_handler,
+    operational_error_exception_handler,
+    last_workout_active_not_exist_exception_handler,
 )
 from internal.mysql_db import Base, engine
 from routers.admin.bike import router as admin_bike_router
@@ -99,6 +102,10 @@ app.add_exception_handler(JWTErrorsException, jwt_errors_exception_handler)
 app.add_exception_handler(AdminRequiredException, admin_required_exception_handler)
 app.add_exception_handler(
     RewardWorkoutNotExistsException, reward_workout_not_exist_exception_handler
+)
+app.add_exception_handler(OperationalError, operational_error_exception_handler)
+app.add_exception_handler(
+    LastWorkoutActiveNotExistException, last_workout_active_not_exist_exception_handler
 )
 
 # 모든 도메인에서 접근 가능하도록 설정

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from internal.app_config import reward
 from internal.exceptions import (
     LastWorkoutIdNotMatchException,
-    LastWorkoutOwnerNotMatchException,
+    WorkoutLastOwnerNotMatchException,
     BikeIdNotMatchException,
     LastWorkoutNotExistsException,
     BikeNotExistsException,
@@ -23,7 +23,9 @@ from messages.workout import (
     WorkoutWidGetRequest,
 )
 from models.bike import get_bike_by_bike_no
-from models.last_workout import get_last_workout_by_owner_id
+from models.last_workout import (
+    get_last_workout_active_by_owner_id,
+)
 from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import (
@@ -108,7 +110,7 @@ async def post_workout_keep_api(
 
         db_user, db = user
 
-        db_last_workout = get_last_workout_by_owner_id(db, db_user.uid)
+        db_last_workout = get_last_workout_active_by_owner_id(db, db_user.uid)
         if db_last_workout is None:
             raise LastWorkoutNotExistsException
 
@@ -118,7 +120,7 @@ async def post_workout_keep_api(
             raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            raise LastWorkoutOwnerNotMatchException
+            raise WorkoutLastOwnerNotMatchException
 
         db_bike = get_bike_by_bike_no(db, bike_serial)
 
@@ -143,7 +145,7 @@ async def post_workout_keep_api(
             if db_workout.ptype == 0:
                 coin = minute_diff * reward["token"]
             elif db_workout.ptype == 1:
-                point = minute_diff * reward["point"]
+                point = round(minute_diff * reward["point"])
         db_workout.token = coin
         db_workout.point = point
         db_workout.duration = minute_diff

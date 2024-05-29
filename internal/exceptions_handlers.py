@@ -230,3 +230,22 @@ async def reward_workout_not_exist_exception_handler(
 
     msg = {"code": 123, "content": "Reward workout not found."}
     return JSONResponse(status_code=410, content=msg)
+
+
+async def operational_error_exception_handler(
+    request: Request, exc: Exception
+) -> Response:
+    logger.error(f"Operational error: {traceback.format_exc()}")
+
+    msg = {"code": 124, "content": "Operational error."}
+    return JSONResponse(status_code=410, content=msg)
+
+
+async def last_workout_active_not_exist_exception_handler(
+    request: Request, exc: Exception
+) -> Response:
+    logger.error(f"Last workout active not found: {traceback.format_exc()}")
+    db_clean()
+
+    msg = {"code": 125, "content": "Last workout active not found."}
+    return JSONResponse(status_code=410, content=msg)
