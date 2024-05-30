@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from internal.app_config import reward
 from internal.exceptions import (
     LastWorkoutIdNotMatchException,
-    WorkoutLastOwnerNotMatchException,
+    LastWorkoutOwnerNotMatchException,
     BikeIdNotMatchException,
     LastWorkoutNotExistsException,
     BikeNotExistsException,
@@ -120,7 +120,7 @@ async def post_workout_keep_api(
             raise LastWorkoutIdNotMatchException
 
         if db_user.uid != db_last_workout.owner_id:
-            raise WorkoutLastOwnerNotMatchException
+            raise LastWorkoutOwnerNotMatchException
 
         db_bike = get_bike_by_bike_no(db, bike_serial)
 

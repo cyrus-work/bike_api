@@ -91,4 +91,4 @@ def make_transaction_out(
 
 
 def get_txn_out_by_txn_hash_is_null(db):
-    return db.query(TransactionOut).filter_by(status=0, transaction_hash=None).all()
+    return db.query(TransactionOut).filter_by(status=0, txn_hash=None).all()

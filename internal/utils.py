@@ -1,11 +1,11 @@
 import hashlib
+import re
 import secrets
 import smtplib
 import traceback
 from datetime import time
 from email.message import EmailMessage
 from functools import wraps
-from typing import re
 
 from passlib.context import CryptContext
 from sqlalchemy import inspect
