@@ -7,8 +7,6 @@ class BikeCreateRequest(BaseModel):
     serial: str
     cpu_version: str
     board_version: str
-    owner_email: str
-    agency_name: str
 
     class Config:
         schema_extra = {
@@ -16,8 +14,6 @@ class BikeCreateRequest(BaseModel):
                 "serial": "C1B000123Z",
                 "cpu_version": "1.0.0",
                 "board_version": "1.0.0",
-                "owner_email": "yarang+v1@gmail.com",
-                "agency_name": "t_agency1",
             }
         }
 

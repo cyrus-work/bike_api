@@ -34,21 +34,9 @@ async def post_create_bike_api(
         serial = bike.serial
         cpu_version = bike.cpu_version
         board_version = bike.board_version
-        owner_email = bike.owner_email
-        agency_name = bike.agency_name
 
-        db_owner = get_user_by_email(db, owner_email)
-        if db_owner is None:
-            raise UserNotExistsException
 
-        db_agency = get_agency_by_name(db, agency_name)
-        if db_agency is None:
-            raise AgencyNotExistsException
-
-        owner_id = db_owner.uid
-        agency_id = db_agency.aid
-
-        db_bike = make_bike(serial, cpu_version, board_version, owner_id, agency_id)
+        db_bike = make_bike(serial, cpu_version, board_version)
         db.add(db_bike)
         db.commit()
         db.refresh(db_bike)

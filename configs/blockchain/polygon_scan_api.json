@@ -1,0 +1,5 @@
+{
+    "polygon_scan_api_url": "https://api.polygonscan.com/api",
+    "amoy_scan_api_url": "https://api-testnet.polygonscan.com/api",
+    "polygon_scan_api_key": "UEGRCJ1EDYIEBD7P1ZGRVSC6VR1WDCZB3N"
+}
