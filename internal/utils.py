@@ -12,6 +12,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
 
 from internal.app_config import platform_env
+from internal.exceptions import JWTDataExpiredException
 from internal.html_msg import make_url, auth_msg
 from internal.log import logger
 
@@ -47,6 +48,7 @@ def exception_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
+            logger.info(f"Calling function: {func.__name__}")
             return func(*args, **kwargs)
 
         except SQLAlchemyError as _:
@@ -56,6 +58,10 @@ def exception_handler(func):
             raise SQLAlchemyError(
                 status_code=500, detail="Database error, please try again later."
             )
+
+        except JWTDataExpiredException as _:
+            logger.error(f"JWT token has expired: {traceback.format_exc()}")
+            raise JWTDataExpiredException()
 
         except Exception as _:
             # 그 외 모든 예외 처리

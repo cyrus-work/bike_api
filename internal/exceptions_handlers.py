@@ -1,251 +1,51 @@
 import traceback
 
+from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 
+from internal.exceptions import exception_handlers
 from internal.log import logger
 from internal.mysql_db import SessionLocal
 
 
 def db_clean():
     db = SessionLocal()
-    db.rollback()
-    db.close()
+    try:
+        db.rollback()
+    except Exception as e:
+        logger.error(f"DB rollback error: {e}")
+    finally:
+        db.close()
 
 
-async def expired_signature_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.info(f"JWT token expired: {traceback.format_exc()}")
-    msg = {"code": 101, "content": "JWT token expired."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def integrity_exception_handler(request: Request, exc: Exception) -> Response:
+async def custom_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(f"Exception: {exc}")
+    exc_type = type(exc)
+    if exc_type in exception_handlers:
+        status_code, error_code, detail = exception_handlers[exc_type]
+        logger.error(f"{detail}: {traceback.format_exc()}")
+        db_clean()
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": detail, "error_code": error_code},
+        )
     logger.error(f"An unexpected error occurred: {traceback.format_exc()}")
     db_clean()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An unexpected error occurred, please try again later."},
+    )
 
-    msg = {"code": 102, "content": "Integrity error occurred."}
-    return JSONResponse(status_code=410, content=msg)
 
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    logger.error(f"HTTPException: {traceback.format_exc()}")
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
-async def expired_data_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"JWT data has expired: {traceback.format_exc()}")
-    msg = {"code": 103, "content": "JWT data has expired"}
-    return JSONResponse(status_code=410, content=msg)
 
-
-async def invalid_token_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Invalid JWT token: {traceback.format_exc()}")
-    msg = {"code": 104, "content": "Invalid JWT token"}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def unexpected_exception_handler(request: Request, exc: Exception) -> Response:
-    logger.error(f"An unexpected error occurred: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {
-        "code": 500,
-        "content": "An unexpected error occurred, please try again later.",
-    }
-    return JSONResponse(status_code=500, content=msg)
-
-
-async def user_exist_exception_handler(request: Request, exc: Exception) -> Response:
-    logger.error(f"User already exists: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 105, "content": "User already exists."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def user_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 106, "content": "User not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def email_confirm_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User email not confirmed: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 107, "content": "User email not confirmed."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def checker_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User checker not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 108, "content": "User checker not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def checker_not_match_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User checker not match: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 109, "content": "User checker not match."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def email_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User email not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 110, "content": "User email not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def jwt_refresh_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"JWT refresh token not found: {traceback.format_exc()}")
-    msg = {"code": 111, "content": "JWT refresh token not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def email_verified_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Email already verified: {traceback.format_exc()}")
-    msg = {"code": 112, "content": "Email already verified."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def user_pw_not_match_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"User password not match: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 113, "content": "User password not match."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def workout_last_id_not_match_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Workout last id not match: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 114, "content": "Workout last id not match."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def workout_last_owner_not_match_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Workout last owner not match: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 115, "content": "Workout last owner not match."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def bike_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Bike not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 116, "content": "Bike not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def workout_last_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Last workout not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 117, "content": "Last workout not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def agency_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Agency not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 118, "content": "Agency not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def bike_id_not_match_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Bike id not match: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 119, "content": "Bike id not match."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def credentials_exception_handler(request: Request, exc: Exception) -> Response:
-    logger.error(f"Credentials exception: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 120, "content": "Credentials exception."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def jwt_errors_exception_handler(request: Request, exc: Exception) -> Response:
-    logger.error(f"JWT errors: {traceback.format_exc()}")
-    msg = {"code": 121, "content": "JWT errors exception."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def admin_required_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Admin required: {traceback.format_exc()}")
-    msg = {"code": 122, "content": "Admin required exception."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def reward_workout_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Reward workout not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 123, "content": "Reward workout not found."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def operational_error_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Operational error: {traceback.format_exc()}")
-
-    msg = {"code": 124, "content": "Operational error."}
-    return JSONResponse(status_code=410, content=msg)
-
-
-async def last_workout_active_not_exist_exception_handler(
-    request: Request, exc: Exception
-) -> Response:
-    logger.error(f"Last workout active not found: {traceback.format_exc()}")
-    db_clean()
-
-    msg = {"code": 125, "content": "Last workout active not found."}
-    return JSONResponse(status_code=410, content=msg)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    logger.error(f"RequestValidationError: {traceback.format_exc()}")
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})

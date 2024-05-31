@@ -55,13 +55,19 @@ def make_agency(owner_id: str, name: str, address: str, phone: str) -> Agency:
     :param phone: phone value
     :return: Agency
     """
-    while True:
-        aid = generate_hash()
-        # aid가 중복되지 않는지 확인
-        if not is_aid_duplicate(aid):
-            break
+    try:
+        while True:
+            aid = generate_hash()
+            # aid가 중복되지 않는지 확인
+            if not is_aid_duplicate(aid):
+                break
 
-    return Agency(aid=aid, owner_id=owner_id, name=name, address=address, phone=phone)
+        return Agency(
+            aid=aid, owner_id=owner_id, name=name, address=address, phone=phone
+        )
+
+    except Exception as e:
+        raise e
 
 
 @exception_handler

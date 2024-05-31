@@ -1,10 +1,10 @@
+# jwt_auth.py
 import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
 from fastapi import Header, Depends
-from fastapi.exceptions import HTTPException
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
@@ -46,42 +46,25 @@ def authenticate_user(email: str, password: str):
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    access token을 만드는 함수.
-    :param data:
-    :param expires_delta:
-    :return:
-    """
     logger.info(f"create_access_token: {data}, {expires_delta}")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
         expire = datetime.now() + timedelta(minutes=auth["access_token_expires"])
-    logger.info(f"create_access_token expire: {expire.timestamp()}")
-    # localtime을 utc로 변경
     expire = expire.astimezone(timezone.utc)
     to_encode.update({"exp": expire})
-    logger.info(f"create_access_token to_encode: {to_encode}")
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
 
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    refresh token을 만드는 함수
-    :param data:
-    :param expires_delta:
-    :return:
-    """
     logger.info(f"create_refresh_token: {data}, {expires_delta}")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
         expire = datetime.now() + timedelta(days=7)
-    logger.info(f"create_refresh_token expire: {expire.timestamp()}")
-    # localtime을 utc로 변경
     expire = expire.astimezone(timezone.utc)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
@@ -89,18 +72,10 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    data를 jwt로 인코딩하는 함수
-
-    :param data:
-    :param expires_delta:
-    :return:
-    """
     logger.info(f"encoded_data_to_jwt: {data}")
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
-        # 기본 값으로 data_expires를 사용 (60 분)
         expire = datetime.now() + timedelta(minutes=data_expires)
     data.update({"exp": expire})
     encoded_jwt = jwt.encode(data, DATA_SECRET_KEY, algorithm="HS256")
@@ -108,18 +83,12 @@ def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def decode_data_from_jwt(token: str):
-    """
-    jwt를 data로 디코딩하는 함수
-
-    :param token:
-    :return:
-    """
     logger.info(f"decode_data_from_jwt: {token}")
     try:
         decoded_data = jwt.decode(token, DATA_SECRET_KEY, algorithms=["HS256"])
         return decoded_data
     except ExpiredSignatureError:
-        raise JWTDataExpiredException
+        raise JWTDataExpiredException()
 
 
 def get_email_from_jwt(token: str):
@@ -135,14 +104,14 @@ def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authoriza
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
         email = payload.get("email")
         if email is None:
-            raise InvalidTokenError("Invalid JWT token")
+            raise JWTErrorsException()
         return email
     except ExpiredSignatureError:
-        raise ExpiredSignatureError
+        raise JWTDataExpiredException()
     except InvalidTokenError:
-        raise InvalidTokenError
-    except Exception as _:
-        raise Exception
+        raise JWTErrorsException()
+    except Exception:
+        raise JWTErrorsException()
 
 
 def get_info_from_refresh_token(token: str):
@@ -160,19 +129,26 @@ def get_current_user(
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
         email: str = payload.get("email")
         if email is None:
-            raise EmailNotExistException
+            raise EmailNotExistException()
+
+    except ExpiredSignatureError:
+        logger.error(f"get_current_user: {traceback.format_exc()}")
+        raise JWTDataExpiredException()
+
     except jwt.PyJWTError:
-        raise JWTErrorsException
+        logger.error(f"get_current_user: {traceback.format_exc()}")
+        raise JWTErrorsException()
+
     user = get_user_by_email(db, email)
     if user is None:
-        raise CredentialException
+        raise CredentialException()
     return user, db
 
 
 def admin_required(current_user: User = Depends(get_current_user)):
     user, db = current_user
     if user.level != 9:
-        raise AdminRequiredException
+        raise AdminRequiredException()
     return current_user
 
 
@@ -185,9 +161,9 @@ def get_user_from_jwt(db: SessionLocal, token: str):
         user = get_user_by_email(db, email)
         return user
 
-    except Exception as _:
+    except Exception:
         logger.error(f"get_user_from_jwt: {traceback.format_exc()}")
-        raise Exception
+        raise JWTErrorsException()
 
 
 def verify_token(token: str):
@@ -195,9 +171,9 @@ def verify_token(token: str):
         decoded_token = jwt.decode(token, auth["secret"], algorithms=["HS256"])
         return decoded_token
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        raise JWTDataExpiredException()
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise JWTErrorsException()
 
 
 def get_payload_from_jwt(req: Request, token: str = Depends(oauth2_scheme)):
