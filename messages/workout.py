@@ -71,6 +71,8 @@ class WorkoutWidGetRequest(BaseModel):
                 "wid": "T1A11060b3ea2a5be5a0620237afdb565bf211c896b29095f2467e2f4985a8fa",
             }
         }
+
+
 class WorkoutGetDurationRequest(BaseModel):
     start_date: str
     end_date: Optional[str] = None
@@ -84,6 +86,28 @@ class WorkoutGetDurationRequest(BaseModel):
                 "end_date": "2021-07-06",
                 "offset": 0,
                 "limit": 50,
+            }
+        }
+
+
+class WorkoutGetDateRequest(BaseModel):
+    date: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "date": "2021-07-01",
+            }
+        }
+
+
+class WorkoutGetMonthRequest(BaseModel):
+    month: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "month": "2021-07",
             }
         }
 

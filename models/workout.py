@@ -312,3 +312,61 @@ def get_workout_duration_not_calculated_by_user_id(
         .order_by(DailyWorkout.created_at.desc())
         .all()
     )
+
+
+def get_monthly_summary_by_user(
+    session: SessionLocal,
+    user_id: str,
+    month_str: str = None,
+):
+    try:
+        logger.info(f">>> get_monthly_summary_by_user start: {user_id}, {month_str}")
+        # If no month_str is provided, use the current month
+        if month_str is None:
+            now = datetime.now()
+            year = now.year
+            month = now.month
+        else:
+            # Parse the provided month_str
+            year, month = map(int, month_str.split("-"))
+        logger.info(f"get_monthly_summary_by_user: {user_id}, {year}, {month}")
+
+        # Calculate the start and end date of the given month
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+
+        # Query to get the daily sum of tokens, points, and energy for the given user and month
+        results = (
+            session.query(
+                DailyWorkout.date,
+                func.sum(DailyWorkout.token).label("total_tokens"),
+                func.sum(DailyWorkout.point).label("total_points"),
+                func.sum(DailyWorkout.energy).label("total_energy"),
+            )
+            .filter(
+                DailyWorkout.owner_id == user_id,
+                DailyWorkout.date >= start_date,
+                DailyWorkout.date < end_date,
+            )
+            .group_by(DailyWorkout.date)
+            .all()
+        )
+
+        # Format results as a list of dictionaries
+        summary = [
+            {
+                "date": result.date,
+                "total_tokens": result.total_tokens,
+                "total_points": result.total_points,
+                "total_energy": result.total_energy,
+            }
+            for result in results
+        ]
+
+        return summary
+
+    finally:
+        logger.info(f">>> get_monthly_summary_by_user end")

@@ -21,6 +21,7 @@ from messages.workout import (
     WorkoutGetRequest,
     WorkoutGetDurationRequest,
     WorkoutWidGetRequest,
+    WorkoutGetMonthRequest,
 )
 from models.bike import get_bike_by_bike_no
 from models.last_workout import (
@@ -36,6 +37,7 @@ from models.workout import (
     get_workout_duration_by_date_and_owner_id,
     get_sum_of_workout_duration_not_calculated_by_user_id,
     get_workout_duration_not_calculated_by_user_id,
+    get_monthly_summary_by_user,
 )
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
@@ -329,15 +331,20 @@ async def post_request_token_api(
         logger.info(f">>> post_request_token_api end")
 
 
-@router.get("/get_workout_by_date_and_owner_id")
-async def get_workout_by_date_and_owner_id_api(user: User = Depends(get_current_user)):
+@router.post("/get_workout_by_date_and_owner_id")
+async def get_workout_by_date_and_owner_id_api(
+    req: WorkoutGetMonthRequest,
+    user: User = Depends(get_current_user),
+):
     logger.info(f">>> get_workout_by_date_and_owner_id_api start")
 
     try:
+        month = req.month
+
         db_user, db = user
         owner_id = db_user.uid
 
-        db_workout = get_workout_by_date_and_owner_id(db, owner_id)
+        db_workout = get_monthly_summary_by_user(db, owner_id, month)
         logger.info(f"get_workout_by_date_and_owner_id_api db_workout: {db_workout}")
         return db_workout
 
