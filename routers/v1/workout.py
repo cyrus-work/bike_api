@@ -18,7 +18,6 @@ from messages.workout import (
     WorkoutCreateRequest,
     WorkoutKeepRequest,
     WorkoutCreateMsg,
-    WorkoutGetRequest,
     WorkoutGetDurationRequest,
     WorkoutWidGetRequest,
     WorkoutGetMonthRequest,
@@ -28,16 +27,14 @@ from models.last_workout import (
     get_last_workout_active_by_owner_id,
 )
 from models.user import User
-from models.wallet import get_wallet_by_owner_id
 from models.workout import (
     get_workout_by_owner_id,
     make_workout,
-    get_workout_by_date_and_owner_id,
     get_workout_by_wid,
     get_workout_duration_by_date_and_owner_id,
     get_sum_of_workout_duration_not_calculated_by_user_id,
-    get_workout_duration_not_calculated_by_user_id,
     get_monthly_summary_by_user,
+    get_workouts_all_by_owner_id,
 )
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
@@ -46,7 +43,8 @@ router = APIRouter()
 
 @router.post("/create")
 async def post_workout_create_api(
-    daily: WorkoutCreateRequest, user: User = Depends(get_current_user)
+    daily: WorkoutCreateRequest,
+    user: User = Depends(get_current_user),
 ):
     """
     workout을 시작하는 API
@@ -137,6 +135,7 @@ async def post_workout_keep_api(
         db_workout.updated_at = datetime.now()
         duration_sec = (db_workout.updated_at - db_workout.created_at).total_seconds()
 
+        # coint, point 계산
         minute_diff = int(duration_sec / 60)
         if minute_diff < 3:
             logger.info(f"invalid minute_diff: {minute_diff}")
@@ -148,6 +147,7 @@ async def post_workout_keep_api(
                 coin = minute_diff * reward["token"]
             elif db_workout.ptype == 1:
                 point = round(minute_diff * reward["point"])
+
         db_workout.token = coin
         db_workout.point = point
         db_workout.duration = minute_diff
@@ -166,10 +166,7 @@ async def post_workout_keep_api(
 
 
 @router.post("/get_workout")
-async def post_get_workout_api(
-    daily: WorkoutGetRequest,
-    user: User = Depends(get_current_user),
-):
+async def post_get_workout_api(user: User = Depends(get_current_user)):
     """
     workout을 조회하는 API
 
@@ -177,17 +174,12 @@ async def post_get_workout_api(
     :param user: User, db 정보
     :return: WorkoutCreateMsg 모델
     """
-    logger.info(f"post_get_workout_api start: {daily}")
+    logger.info(f"post_get_workout_api start")
 
     try:
-        date = daily.date
-
         db_user, db = user
 
-        if date is not None:
-            db_workout = get_workout_by_date_and_owner_id(db, db_user.uid, date)
-        else:
-            db_workout = get_workout_by_owner_id(db, db_user.uid)
+        db_workout = get_workout_by_owner_id(db, db_user.uid)
 
         logger.info(f"post_get_workout_api db_workout: {db_workout}")
         return db_workout
@@ -244,9 +236,11 @@ async def post_get_workout_duration_api(
         start_date = daily.start_date
 
         if daily.end_date is None:
-            end_date = datetime.today()
+            end_date = datetime.today().date()
         else:
             end_date = daily.end_date
+
+        logger.info(f"post_get_workout_duration_api: {start_date}, {end_date}")
 
         db_workout = get_workout_duration_by_date_and_owner_id(
             db, db_user.uid, start_date, end_date
@@ -313,18 +307,9 @@ async def post_request_token_api(
     try:
         db_user, db = user
 
-        db_workouts = get_workout_duration_not_calculated_by_user_id(db, db_user.uid)
-        db_wallet = get_wallet_by_owner_id(db, db_user.uid)
+        db_workouts = get_workouts_all_by_owner_id(db, db_user.uid)
+        logger.info(f"post_request_token_api db_workouts: {db_workouts}")
 
-        sum_of_workout = 0
-        for item in db_workouts:
-            item.status = 1
-            db.merge(item)
-
-            sum_of_workout += item.token
-        db.commit()
-
-        logger.info(f"post_request_token_api db_workout: {db_workouts}")
         return db_workouts
 
     finally:

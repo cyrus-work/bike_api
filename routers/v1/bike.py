@@ -1,16 +1,12 @@
 from fastapi import APIRouter, Depends
 
-from internal.exceptions import UserNotExistsException, AgencyNotExistsException
-from internal.jwt_auth import oauth2_scheme, get_email_from_jwt
 from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from messages.bike import BikeCreateRequest
-from models.agency import get_agency_by_name, get_agency_by_owner_id
 from models.bike import (
     make_bike,
     get_bikes_all,
 )
-from models.user import get_user_by_email
 
 router = APIRouter()
 
@@ -34,7 +30,6 @@ async def post_create_bike_api(
         serial = bike.serial
         cpu_version = bike.cpu_version
         board_version = bike.board_version
-
 
         db_bike = make_bike(serial, cpu_version, board_version)
         db.add(db_bike)

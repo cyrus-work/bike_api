@@ -56,9 +56,7 @@ from models.user_wallet import get_user_wallets, get_user_info_by_uid
 router = APIRouter()
 
 
-@router.post(
-    "/login",
-)
+@router.post("/login")
 async def post_login_user_api(
     request: Request, user: UserLoginRequest, db: SessionLocal = Depends(get_db)
 ):
@@ -93,9 +91,7 @@ async def post_login_user_api(
         logger.info(f">>> post_login_user_api end")
 
 
-@router.post(
-    "/create",
-)
+@router.post("/create")
 async def post_create_user_api(
     user: UserCreateRequest, db: SessionLocal = Depends(get_db)
 ):
@@ -285,9 +281,7 @@ async def post_user_email_resend_api(
         logger.info(f">>> post_user_email_resend_api end")
 
 
-@router.get(
-    "/email_confirm",
-)
+@router.get("/email_confirm")
 async def email_confirm_user_api(
     email: str, checker: str, db: SessionLocal = Depends(get_db)
 ):
@@ -340,9 +334,7 @@ async def email_confirm_user_api(
         logger.info(f">>> email_confirm_user_api end")
 
 
-@router.post(
-    "/email_confirm_check",
-)
+@router.post("/email_confirm_check")
 async def email_confirm_check_user_api(
     data: UserEmailRequest, db: SessionLocal = Depends(get_db)
 ):
@@ -576,7 +568,6 @@ async def get_user_info_by_owner(user: User = Depends(get_current_user)):
         user_dict = db_user_info.__dict__.copy()
         user_dict.pop("_sa_instance_state")
         user_dict.pop("uid")
-        user_dict.pop("hashed_pwd")
         user_dict.pop("wid")
         user_dict.pop("wallet_created_at")
         user_dict.pop("wallet_updated_at")

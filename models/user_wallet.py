@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, DateTime, CHAR
 
 from internal.mysql_db import Base
 from internal.utils import exception_handler
-from models.user import User
 
 
 class UserWalletView(Base):
@@ -12,7 +11,6 @@ class UserWalletView(Base):
     type = Column(Integer)
     name = Column(String(100, collation="utf8mb4_unicode_ci"))
     email = Column(String(120, collation="latin1_swedish_ci"))
-    hashed_pwd = Column(String(60, collation="latin1_swedish_ci"))
     email_verified = Column(CHAR(1))
     agreement1 = Column(CHAR(1))
     agreement2 = Column(CHAR(1))
@@ -30,11 +28,11 @@ class UserWalletView(Base):
     def __repr__(self):
         return (
             f"UserWalletView(uid={self.uid}, type={self.type}, name={self.name}, email={self.email}, "
-            f"hashed_pwd={self.hashed_pwd}, email_verified={self.email_verified}, "
-            f"agreement1={self.agreement1}, agreement2={self.agreement2}, agreement3={self.agreement3}, "
-            f"status={self.status}, level={self.level}, user_created_at={self.user_created_at}, "
-            f"user_updated_at={self.user_updated_at}, wid={self.wid}, address={self.address}, "
-            f"enable={self.enable}, wallet_created_at={self.wallet_created_at}, wallet_updated_at={self.wallet_updated_at})"
+            f"email_verified={self.email_verified}, agreement1={self.agreement1}, agreement2={self.agreement2}, "
+            f"agreement3={self.agreement3}, status={self.status}, level={self.level}, "
+            f"user_created_at={self.user_created_at}, user_updated_at={self.user_updated_at}, "
+            f"wid={self.wid}, address={self.address}, enable={self.enable}, "
+            f"wallet_created_at={self.wallet_created_at}, wallet_updated_at={self.wallet_updated_at})"
         )
 
 

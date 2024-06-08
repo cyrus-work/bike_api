@@ -7,7 +7,7 @@ import jwt
 from fastapi import Header, Depends
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordBearer
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import ExpiredSignatureError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
@@ -98,6 +98,7 @@ def get_email_from_jwt(token: str):
     return email
 
 
+@exception_handler
 def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authorization")):
     try:
         token = authorization.split()[1]
@@ -106,14 +107,12 @@ def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authoriza
         if email is None:
             raise JWTErrorsException()
         return email
-    except ExpiredSignatureError:
-        raise JWTDataExpiredException()
-    except InvalidTokenError:
-        raise JWTErrorsException()
-    except Exception:
-        raise JWTErrorsException()
+
+    finally:
+        logger.info(f"get_email_from_jwt_depends")
 
 
+@exception_handler
 def get_info_from_refresh_token(token: str):
     payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
     logger.info(f"get_info_from_refresh_token: {payload}")

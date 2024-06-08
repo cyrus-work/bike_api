@@ -2,12 +2,15 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError, HTTPException
 
 from internal.exceptions import exception_handlers
-from internal.exceptions_handlers import custom_exception_handler, http_exception_handler, validation_exception_handler
+from internal.exceptions_handlers import (
+    custom_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 from internal.mysql_db import Base, engine
 from routers.admin.bike import router as admin_bike_router
 from routers.admin.wallet import router as admin_wallet_router
 from routers.admin.workout import router as admin_workout_router
-from routers.v1.agency import router as v1_agency_router
 from routers.v1.bike import router as v1_bike_router
 from routers.v1.rewards import router as v1_rewards_router
 from routers.v1.user import router as v1_user_router
@@ -20,6 +23,7 @@ app = FastAPI()
 # 예외 처리기 등록
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, custom_exception_handler)
 for exc_type in exception_handlers:
     app.add_exception_handler(exc_type, custom_exception_handler)
 
@@ -39,7 +43,6 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(v1_user_router, prefix="/user", tags=["users"])
 app.include_router(v1_bike_router, prefix="/bike", tags=["bike"])
-app.include_router(v1_agency_router, prefix="/agency", tags=["agency"])
 app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
 app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 
