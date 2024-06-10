@@ -52,9 +52,9 @@ app.include_router(v1_user_router, prefix="/user", tags=["users"])
 app.include_router(v1_bike_router, prefix="/bike", tags=["bike"])
 app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
 app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
+app.include_router(v1_rewards_router, prefix="/v1/rewards", tags=["rewards"])
 
 app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
-app.include_router(v1_rewards_router, prefix="/v1/rewards", tags=["rewards"])
 
 app.include_router(admin_user_info_router, prefix="/admin/user", tags=["admin"])
 app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])

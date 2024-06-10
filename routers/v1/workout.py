@@ -32,9 +32,8 @@ from models.workout import (
     make_workout,
     get_workout_by_wid,
     get_workout_duration_by_date_and_owner_id,
-    get_sum_of_workout_duration_not_calculated_by_user_id,
     get_monthly_summary_by_user,
-    get_workouts_all_by_owner_id,
+    get_workouts_all_by_owner_id, get_sum_of_not_calculated_token_by_user_id,
 )
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
@@ -43,8 +42,8 @@ router = APIRouter()
 
 @router.post("/create")
 async def post_workout_create_api(
-    daily: WorkoutCreateRequest,
-    user: User = Depends(get_current_user),
+        daily: WorkoutCreateRequest,
+        user: User = Depends(get_current_user),
 ):
     """
     workout을 시작하는 API
@@ -87,8 +86,8 @@ async def post_workout_create_api(
 
 @router.post("/keep")
 async def post_workout_keep_api(
-    daily: WorkoutKeepRequest,
-    user: User = Depends(get_current_user),
+        daily: WorkoutKeepRequest,
+        user: User = Depends(get_current_user),
 ):
     """
     workout을 유지하는 API
@@ -107,6 +106,7 @@ async def post_workout_keep_api(
         bike_serial = daily.bike_serial
         energy = daily.energy
         calorie = daily.calorie
+        duration = daily.running_time
 
         db_user, db = user
 
@@ -132,8 +132,8 @@ async def post_workout_keep_api(
 
         db_workout.energy = Decimal(energy)
         db_workout.calorie = Decimal(calorie)
+        duration_sec = duration
         db_workout.updated_at = datetime.now()
-        duration_sec = (db_workout.updated_at - db_workout.created_at).total_seconds()
 
         # coint, point 계산
         minute_diff = int(duration_sec / 60)
@@ -190,7 +190,7 @@ async def post_get_workout_api(user: User = Depends(get_current_user)):
 
 @router.post("/get_workout_wid")
 async def post_get_workout_with_wid__api(
-    daily: WorkoutWidGetRequest, user: User = Depends(get_current_user)
+        daily: WorkoutWidGetRequest, user: User = Depends(get_current_user)
 ):
     """
     workout을 wid로 조회하는 API
@@ -217,7 +217,7 @@ async def post_get_workout_with_wid__api(
 
 @router.post("/get_workout_duration")
 async def post_get_workout_duration_api(
-    daily: WorkoutGetDurationRequest, user: User = Depends(get_current_user)
+        daily: WorkoutGetDurationRequest, user: User = Depends(get_current_user)
 ):
     """
     workout duration을 조회하는 API
@@ -255,7 +255,7 @@ async def post_get_workout_duration_api(
 @router.get("/get_workout_sum")
 async def get_workout_duration_api(user: User = Depends(get_current_user)):
     """
-    하루의 workout duration을 조회하는 API
+    하루의 workout duration 합을 조회하는 API
 
     :param user: User, db 정보
     :return: WorkoutCreateMsg 모델
@@ -276,13 +276,13 @@ async def get_workout_duration_api(user: User = Depends(get_current_user)):
 @router.get("/not_calculated_token")
 async def get_not_calculated_token_api(user: User = Depends(get_current_user)):
     """
-    token이 계산되지 않은 workout을 조회하는 API
+    정산되지 않은 token을 조회하는 API
     """
     logger.info(f">>> get_not_calculated_token_api start")
 
     db_user, db = user
     try:
-        db_workout = get_sum_of_workout_duration_not_calculated_by_user_id(
+        db_workout = get_sum_of_not_calculated_token_by_user_id(
             db, db_user.uid
         )
         logger.info(f"get_not_calculated_token_api db_workout: {db_workout}")
@@ -292,34 +292,10 @@ async def get_not_calculated_token_api(user: User = Depends(get_current_user)):
         logger.info(f">>> get_not_calculated_token_api end")
 
 
-@router.post("/request_token")
-async def post_request_token_api(
-    user: User = Depends(get_current_user),
-):
-    """
-    workout을 조회하는 API
-
-    :param user: User, db 정보
-    :return: WorkoutCreateMsg 모델
-    """
-    logger.info(f"post_request_token_api start")
-
-    try:
-        db_user, db = user
-
-        db_workouts = get_workouts_all_by_owner_id(db, db_user.uid)
-        logger.info(f"post_request_token_api db_workouts: {db_workouts}")
-
-        return db_workouts
-
-    finally:
-        logger.info(f">>> post_request_token_api end")
-
-
 @router.post("/get_workout_by_date_and_owner_id")
 async def get_workout_by_date_and_owner_id_api(
-    req: WorkoutGetMonthRequest,
-    user: User = Depends(get_current_user),
+        req: WorkoutGetMonthRequest,
+        user: User = Depends(get_current_user),
 ):
     logger.info(f">>> get_workout_by_date_and_owner_id_api start")
 
@@ -335,3 +311,5 @@ async def get_workout_by_date_and_owner_id_api(
 
     finally:
         logger.info(f">>> get_workout_by_date_and_owner_id_api end")
+
+

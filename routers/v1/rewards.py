@@ -7,6 +7,7 @@ from models.reward_request import make_transaction_out
 from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import get_workout_list_not_calculated_coin_by_user_id
+from models.workout_summary import get_summary_by_email
 
 router = APIRouter()
 
@@ -50,3 +51,24 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
 
     finally:
         logger.info(f">>> post_request_rewards_api end")
+
+
+@router.post("/total")
+async def post_total_rewards_api(user: User = Depends(get_current_user)):
+    """
+    Get total rewards
+    정산받은 것 + 정산받지 않은 것
+
+    :return:
+    """
+    logger.info(f">>> post_total_rewards_api start")
+
+    try:
+        db_user, db = user
+        logger.info(f"post_total_rewards_api db_user: {db_user}")
+
+        db_workout_summary = get_summary_by_email(db, db_user.email)
+        return db_workout_summary
+
+    finally:
+        logger.info(f">>> post_total_rewards_api end")

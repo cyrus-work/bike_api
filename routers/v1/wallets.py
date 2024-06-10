@@ -33,8 +33,11 @@ async def post_wallets_create_api(
 
         db_wallet = get_wallet_by_owner_id(db, owner_id=db_user.uid)
         if db_wallet:
+            logger.info(f"post_wallets_create_api update")
+            db_wallet.address = address
             db.merge(db_wallet)
         else:
+            logger.info(f"post_wallets_create_api create")
             db_wallet = make_wallet(owner_id=db_user.uid, address=address)
             db.add(db_wallet)
 

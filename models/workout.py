@@ -111,7 +111,7 @@ def get_workout_by_bid(db: SessionLocal, bid: str) -> DailyWorkout:
 
 @exception_handler
 def get_workout_by_owner_id(
-    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+        db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     """
     Get workout by owner_id
@@ -148,22 +148,18 @@ def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
 
 @exception_handler
 def get_workout_duration_by_date_and_owner_id(
-    db: SessionLocal,
-    owner_id: str,
-    start_date: datetime.date,
-    end_date: datetime.date,
-    offset: int = 0,
-    limit: int = 50,
+        db: SessionLocal,
+        owner_id: str,
+        start_date: datetime.date,
+        end_date: datetime.date,
 ) -> list[DailyWorkout]:
     """
-    Get workout duration by date and owner_id
+    Get workout duration sum by date and owner_id
 
     :param db: SessionLocal
     :param owner_id: owner_id 값
     :param start_date: start_date 값
     :param end_date: end_date 값
-    :param offset: 시작점, 기본값 0
-    :param limit: 결과값의 개수, 기본값 50
     """
     return (
         db.query(DailyWorkout)
@@ -173,37 +169,12 @@ def get_workout_duration_by_date_and_owner_id(
             DailyWorkout.created_at <= end_date,
         )
         .order_by(DailyWorkout.created_at.desc())
-        .offset(offset)
-        .limit(limit)
         .all()
     )
 
 
-@exception_handler
-def update_workout_values_by_wid(
-    db: SessionLocal, wid: str, coin: float, point: int, wattage: float, calorie: float
-) -> int:
-    """
-    Update workout values by wid
-
-    :param db: SessionLocal
-    :param wid: wid 값
-    :param coin: coin 값
-    :param point: point 값
-    :param wattage: wattage 값
-    :param calorie: calorie 값
-    :return: int
-        업데이트된 row 수
-    """
-    return (
-        db.query(DailyWorkout)
-        .filter_by(wid=wid)
-        .update({"coin": coin, "point": point, "wattage": wattage, "calorie": calorie})
-    )
-
-
 def get_workouts_all(
-    db: SessionLocal, offset: int = 0, limit: int = 50
+        db: SessionLocal, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -215,7 +186,7 @@ def get_workouts_all(
 
 
 def get_workouts_all_by_owner_id(
-    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+        db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -227,8 +198,20 @@ def get_workouts_all_by_owner_id(
     )
 
 
+def get_sum_of_token_requested_by_user_id(db: SessionLocal, owner_id: str) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.token))
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 1,
+            DailyWorkout.ptype == 0,
+        )
+        .scalar()
+    )
+
+
 def get_sum_of_workout_duration_not_calculated_by_user_id(
-    db: SessionLocal, owner_id: str
+        db: SessionLocal, owner_id: str
 ) -> int:
     return (
         db.query(func.sum(DailyWorkout.duration))
@@ -243,7 +226,7 @@ def get_sum_of_workout_duration_not_calculated_by_user_id(
 
 
 def get_sum_of_workout_duration_not_calculated_point_by_user_id(
-    db: SessionLocal, owner_id: str
+        db: SessionLocal, owner_id: str
 ) -> int:
     return (
         db.query(func.sum(DailyWorkout.duration))
@@ -257,8 +240,34 @@ def get_sum_of_workout_duration_not_calculated_point_by_user_id(
     )
 
 
+def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.token))
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 0,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .scalar()
+    )
+
+
+def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.point))
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 1,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .scalar()
+    )
+
+
 def get_workout_list_not_calculated_coin_by_user_id(
-    db: SessionLocal, owner_id: str
+        db: SessionLocal, owner_id: str
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -288,9 +297,9 @@ def get_workout_list_not_calculated_point_by_user_id(db: SessionLocal, owner_id:
 
 
 def get_monthly_summary_by_user(
-    session: SessionLocal,
-    user_id: str,
-    month_str: str = None,
+        session: SessionLocal,
+        user_id: str,
+        month_str: str = None,
 ):
     try:
         logger.info(f">>> get_monthly_summary_by_user start: {user_id}, {month_str}")

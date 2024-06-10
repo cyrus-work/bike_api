@@ -28,6 +28,7 @@ class WorkoutKeepRequest(BaseModel):
     bike_serial: str
     energy: float
     calorie: float
+    running_time: int
 
     class Config:
         schema_extra = {
@@ -36,6 +37,7 @@ class WorkoutKeepRequest(BaseModel):
                 "bike_serial": "1234567890",
                 "energy": 0.1,
                 "calorie": 0.1,
+                "running_time": 10,
             }
         }
 
@@ -76,16 +78,12 @@ class WorkoutWidGetRequest(BaseModel):
 class WorkoutGetDurationRequest(BaseModel):
     start_date: str
     end_date: Optional[str] = None
-    offset: Optional[int] = 0
-    limit: Optional[int] = 50
 
     class Config:
         schema_extra = {
             "example": {
                 "start_date": "2021-07-06",
                 "end_date": "2021-07-06",
-                "offset": 0,
-                "limit": 50,
             }
         }
 
