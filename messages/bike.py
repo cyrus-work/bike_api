@@ -1,12 +1,18 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from messages.messages import Message
 
+"""
+Bike Request Models
+"""
+
 
 class BikeCreateRequest(BaseModel):
     serial: str
-    cpu_version: str
-    board_version: str
+    cpu_version: Optional[str] = "1.0.0"
+    board_version: Optional[str] = "1.0.0"
 
     class Config:
         schema_extra = {
@@ -18,9 +24,34 @@ class BikeCreateRequest(BaseModel):
         }
 
 
+class BikeGetRequest(BaseModel):
+    """
+    Bike get model
+
+    serial: Bike serial
+    """
+
+    serial: str
+
+    class Config:
+        schema_extra = {"example": {"serial": "C1B000123Z"}}
+
+
+"""
+Bike Messages
+"""
+
+
 class BikeCreateMsg(Message):
+    serial: str
+
     class Config:
         schema_extra = {"example": {"code": 200, "content": "Bike create"}}
+
+
+class BikeDeleteMsg(Message):
+    class Config:
+        schema_extra = {"example": {"code": 200, "content": "Bike delete"}}
 
 
 class BikeManagementFailMsg(Message):

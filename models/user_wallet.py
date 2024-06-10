@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, CHAR
 
-from internal.mysql_db import Base
+from internal.mysql_db import Base, SessionLocal
 from internal.utils import exception_handler
 
 
@@ -57,3 +57,53 @@ def get_user_info_by_uid(session, uid):
     :return: User
     """
     return session.query(UserWalletView).filter_by(uid=uid).first()
+
+
+@exception_handler
+def get_user_info_by_email_verified(session, email_verified):
+    """
+    Get user info by email_verified
+
+    :param session: session
+    :param email_verified: email_verified
+    :return: User
+    """
+    return session.query(UserWalletView).filter_by(email_verified=email_verified).all()
+
+
+@exception_handler
+def get_user_info_by_wallet_exist(db: SessionLocal, wallet_exist: bool):
+    """
+    Get user info by wallet_exist
+    if True is not None, if False is None
+
+    :param db: SessionLocal: session
+    :param wallet_exist: wallet_exist
+    :return: User
+    """
+    if wallet_exist:
+        return (
+            db.query(UserWalletView)
+            .filter(UserWalletView.address.isnot(None))
+            .order_by(UserWalletView.user_created_at.desc())
+            .all()
+        )
+    else:
+        return (
+            db.query(UserWalletView)
+            .filter(UserWalletView.address.is_(None))
+            .order_by(UserWalletView.user_created_at.desc())
+            .all()
+        )
+
+
+@exception_handler
+def get_user_info_by_wallet(db, wallet):
+    """
+    Get user info by wallet
+
+    :param db: SessionLocal: session
+    :param wallet: wallet
+    :return: User
+    """
+    return db.query(UserWalletView).filter_by(address=wallet).first()

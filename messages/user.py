@@ -4,8 +4,11 @@ from pydantic import BaseModel
 
 from messages.messages import Message
 
+"""
+User Request Models
+"""
 
-### User Request Models ###
+
 class UserLoginRequest(BaseModel):
     email: str
     password: str
@@ -209,3 +212,33 @@ class UserEmailDuplicateMsg(Message):
 class InvalidUuidMsg(Message):
     class Config:
         schema_extra = {"example": {"code": 465, "content": "uuid is invalid"}}
+
+
+class UserSearchFlagRequest(BaseModel):
+    """
+    User search flag model
+    email: User email(str)
+    """
+
+    verified: str
+
+    class Config:
+        schema_extra = {"example": {"verified": "Y"}}
+
+
+class UserSearchWalletRequest(BaseModel):
+    """
+    User search wallet model
+    wallet: User wallet(str)
+    """
+
+    exist: Optional[bool]
+    wallet: Optional[str]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "exist": True,
+                "wallet": "0x2B00D03AeeAe930Fe5BB5dcf56B82Bb715Ce522A",
+            }
+        }

@@ -232,12 +232,32 @@ def get_sum_of_workout_duration_not_calculated_by_user_id(
 ) -> int:
     return (
         db.query(func.sum(DailyWorkout.duration))
-        .filter(DailyWorkout.owner_id == owner_id, DailyWorkout.status == 0)
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 0,
+            DailyWorkout.transaction_id.is_(None),
+        )
         .scalar()
     )
 
 
-def get_workout_duration_not_calculated_by_user_id(
+def get_sum_of_workout_duration_not_calculated_point_by_user_id(
+    db: SessionLocal, owner_id: str
+) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.duration))
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 1,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .scalar()
+    )
+
+
+def get_workout_list_not_calculated_coin_by_user_id(
     db: SessionLocal, owner_id: str
 ) -> list[DailyWorkout]:
     return (
@@ -246,6 +266,20 @@ def get_workout_duration_not_calculated_by_user_id(
             DailyWorkout.owner_id == owner_id,
             DailyWorkout.status == 0,
             DailyWorkout.ptype == 0,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .order_by(DailyWorkout.created_at.desc())
+        .all()
+    )
+
+
+def get_workout_list_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str):
+    return (
+        db.query(DailyWorkout)
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 1,
             DailyWorkout.transaction_id.is_(None),
         )
         .order_by(DailyWorkout.created_at.desc())

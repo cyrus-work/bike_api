@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
 from internal.jwt_auth import (
     create_access_token,
@@ -18,7 +17,6 @@ from messages.jwt_auth import (
 )
 from messages.user import (
     UserNotFoundMsg,
-    UserEmailRequest,
 )
 from models.user import get_user_by_email, get_users
 
@@ -29,37 +27,6 @@ router = APIRouter()
 async def read_users(db: SessionLocal = Depends(get_db)):
     users = get_users(db, offset=0, limit=100)
     return users
-
-
-@router.post("/delete")
-async def delete_user_by_email_api(
-    req: UserEmailRequest, db: SessionLocal = Depends(get_db)
-):
-    """
-    사용자 삭제
-
-    :param req: UserEmailRequest 모델
-    :param db: db session
-    :return:
-    """
-    logger.info(f">>> delete_user_by_email_api: {req}")
-
-    try:
-        email = req.email
-        db_user = get_user_by_email(db, email)
-        if db_user is None:
-            msg = {"code": 462, "content": "User not found"}
-            logger.error(f"delete_user_by_email_api msg: {msg}")
-            return JSONResponse(status_code=462, content=msg)
-
-        db.delete(db_user)
-        db.commit()
-
-        logger.info(f"delete_user_by_email_api: {email} delete success")
-        return {"message": "delete success"}
-
-    finally:
-        logger.info(f">>> delete_user_by_email_api end")
 
 
 @router.post(

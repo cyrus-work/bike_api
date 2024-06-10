@@ -121,3 +121,14 @@ class WorkoutCreateMsg(BaseModel):
                 "workout_id": "e7fce73002152d4a6b4308c98a6e09d72e278e7a949558c153f8e332713bd3ca",
             }
         }
+
+
+class WorkoutGetTypeRequest(BaseModel):
+    ptype: int
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "ptype": 0,
+            }
+        }

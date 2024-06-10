@@ -51,7 +51,7 @@ from models.user_check import (
     get_user_check_by_email,
     clean_checkers,
 )
-from models.user_wallet import get_user_wallets, get_user_info_by_uid
+from models.user_wallet import get_user_info_by_uid
 
 router = APIRouter()
 
@@ -449,38 +449,7 @@ async def read_users(db: SessionLocal = Depends(get_db)):
     return users
 
 
-@router.post("/delete")
-async def delete_user_by_email_api(
-    req: UserEmailRequest, db: SessionLocal = Depends(get_db)
-):
-    """
-    사용자 삭제
-
-    :param req: UserEmailRequest 모델
-    :param db: db session
-    :return:
-    """
-    logger.info(f">>> delete_user_by_email_api: {req}")
-
-    try:
-        email = req.email
-        db_user = get_user_by_email(db, email)
-        if db_user is None:
-            raise UserNotExistsException
-
-        db.delete(db_user)
-        db.commit()
-
-        logger.info(f"delete_user_by_email_api: {email} delete success")
-        return {"message": "delete success"}
-
-    finally:
-        logger.info(f">>> delete_user_by_email_api end")
-
-
-@router.post(
-    "/refresh",
-)
+@router.post("/refresh")
 async def refresh_token_api(
     db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
@@ -531,25 +500,6 @@ async def refresh_refresh_token(user: User = Depends(get_current_user)):
 
     finally:
         logger.info(f">>> refresh_refresh_token end")
-
-
-@router.get("/all_users_info")
-async def get_user_info(db: SessionLocal = Depends(get_db)):
-    """
-    사용자 정보 조회
-
-    :param db: db session
-    :return:
-    """
-    logger.info(f">>> get_user_info start")
-
-    try:
-        db_user_info = get_user_wallets(db)
-        logger.info(f"get_user_info: {db_user_info}")
-        return db_user_info
-
-    finally:
-        logger.info(f">>> get_user_info end")
 
 
 @router.get("/info")

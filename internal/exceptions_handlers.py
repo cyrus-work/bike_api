@@ -1,7 +1,5 @@
 import traceback
 
-from fastapi import HTTPException
-from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
@@ -39,13 +37,27 @@ async def custom_exception_handler(request: Request, exc: Exception) -> JSONResp
     )
 
 
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error(f"HTTPException: {traceback.format_exc()}")
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
+    request: Request, exc: Exception
 ) -> JSONResponse:
     logger.error(f"RequestValidationError: {traceback.format_exc()}")
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
+
+async def integrity_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(f"IntegrityError: {traceback.format_exc()}")
+    return JSONResponse(
+        status_code=500, content={"detail": f"{exc.orig}: {exc.orig.args[0]}"}
+    )
+
+
+async def unmapped_instance_error_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
+    logger.error(f"UnmappedInstanceError: {traceback.format_exc()}")
+    return JSONResponse(status_code=500, content={"detail": f"{exc.__str__()}"})
