@@ -48,6 +48,7 @@ def schedule_token_transfer():
 
             db_workout.txn_hash = txn_hash
             db_workout.status = 1
+            db_workout.operating_at = datetime.now()
             db.merge(db_workout)
             db.flush()
 
@@ -86,15 +87,14 @@ def schedule_token_checker():
             tx_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
             if tx_receipt is None:
                 db_txn.status = 2
-                db_txn.operating_at = datetime.now()
+                db_txn.result_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: tx_receipt is None")
 
             if tx_receipt.status == 1:
                 db_txn.status = 5
-                db_txn.operating_at = datetime.now()
-                db_txn.tx_completed_at = datetime.now()
+                db_txn.result_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: status: receipt is finished")
@@ -107,7 +107,7 @@ def schedule_token_checker():
 
             if tx_receipt.blockNumber is None:
                 db_txn.status = 4
-                db_txn.operating_at = datetime.now()
+                db_txn.result_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: status: blockNumber is None")

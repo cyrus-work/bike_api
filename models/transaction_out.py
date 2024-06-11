@@ -33,7 +33,6 @@ class TransactionOut(Base):
             7: 전송 요청 실패 - transaction hash 발급 실패, 전송 실패
     :param request_at: 전송 요청 시간
     :param operating_at: 전송 처리 시간
-    :param tx_completed_at: 전송 완료 시간
     :param result_at: 전송 처리 시간
     :param created_at: 생성 시간
     :param updated_at: 수정 시간
@@ -53,7 +52,6 @@ class TransactionOut(Base):
     status = Column(SmallInteger, nullable=False, default=0)
     request_at = Column(DateTime, nullable=True, default=None)  # 전송 요청 시간
     operating_at = Column(DateTime, nullable=True, default=None)  # 전송 처리 시간
-    tx_completed_at = Column(DateTime, nullable=True, default=None)
     result_at = Column(DateTime, nullable=True, default=None)  # 전송 결과 시간
     created_at = Column(DateTime, nullable=False, default=datetime.now())
     updated_at = Column(DateTime, onupdate=datetime.now())
@@ -63,8 +61,8 @@ class TransactionOut(Base):
             f"<TransactionOut(tid={self.tid}, owner_id={self.owner_id}, wallet={self.wallet}, "
             f"amount={self.amount}, operating_fee={self.operating_fee}, txn_hash={self.txn_hash}, "
             f"msg={self.msg}, status={self.status}, request_at={self.request_at}, "
-            f"operating_at={self.operating_at}, tx_completed_at={self.tx_completed_at}, "
-            f"result_at={self.result_at}, created_at={self.created_at}, updated_at={self.updated_at}>"
+            f"operating_at={self.operating_at}, result_at={self.result_at}, "
+            f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )
 
 
@@ -77,6 +75,7 @@ def make_transaction_out(
     Make transaction out
 
     :param wallet: wallet value
+    :param owner_id: owner_id value
     :param amount: coin value
     :return: TransactionOut
     """
