@@ -87,8 +87,17 @@ def make_transaction_out(
         amount=amount,
         operating_fee=operating_fee,
         status=0,
+        request_at=datetime.now(),
     )
 
 
 def get_txn_out_by_txn_hash_is_null(db):
     return db.query(TransactionOut).filter_by(status=0, txn_hash=None).all()
+
+
+def get_txn_out_by_status_not_clear(db):
+    return db.query(TransactionOut).filter(TransactionOut.status != 5).all()
+
+
+def get_txn_out_by_wallet(db, wallet):
+    return db.query(TransactionOut).filter_by(wallet=wallet).all()

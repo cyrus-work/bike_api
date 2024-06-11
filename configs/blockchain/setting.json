@@ -1,7 +1,7 @@
 {
   "test_mode": true,
   "scheduler": {
-    "hour": "0, 6, 10, 12, 18",
+    "hour": "*/1",
     "minute": 0
   },
   "publish_delay": 1

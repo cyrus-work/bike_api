@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 
 from internal.exceptions import RewardWorkoutNotExistsException
 from internal.jwt_auth import get_current_user
 from internal.log import logger
-from models.reward_request import make_transaction_out
+from models.transaction_out import make_transaction_out
 from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import get_workout_list_not_calculated_coin_by_user_id
@@ -38,6 +40,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         sum_coin = 0
         for item in db_workouts:
             item.transaction_id = txn.tid
+            item.operating_at = datetime.now()
             sum_coin += item.token
             db.merge(item)
             db.flush()

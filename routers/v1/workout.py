@@ -33,7 +33,7 @@ from models.workout import (
     get_workout_by_wid,
     get_workout_duration_by_date_and_owner_id,
     get_monthly_summary_by_user,
-    get_workouts_all_by_owner_id, get_sum_of_not_calculated_token_by_user_id,
+    get_sum_of_not_calculated_token_by_user_id,
 )
 from models.workout_duration import get_workout_duration_sum_by_owner_id_and_date
 
@@ -238,7 +238,7 @@ async def post_get_workout_duration_api(
         if daily.end_date is None:
             end_date = datetime.today().date()
         else:
-            end_date = daily.end_date
+            end_date = daily.end_date + " 23:59:59"
 
         logger.info(f"post_get_workout_duration_api: {start_date}, {end_date}")
 
