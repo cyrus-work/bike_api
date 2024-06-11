@@ -35,7 +35,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         if len(db_workouts) == 0:
             raise RewardWorkoutNotExistsException
 
-        txn = make_transaction_out(db_wallet.address)
+        txn = make_transaction_out(db_wallet.address, db_user.uid)
 
         sum_coin = 0
         for item in db_workouts:

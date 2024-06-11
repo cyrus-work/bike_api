@@ -44,6 +44,7 @@ class TransactionOut(Base):
     __table_args__ = {"comment": "트랜젝션 테이블"}
 
     tid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
+    owner_id = Column(String(64, collation="latin1_swedish_ci"), nullable=False)
     wallet = Column(String(42, collation="latin1_swedish_ci"), nullable=False)
     amount = Column(DECIMAL(36, 18), nullable=False, default=0)
     operating_fee = Column(DECIMAL(36, 18), nullable=False, default=0)
@@ -59,16 +60,17 @@ class TransactionOut(Base):
 
     def __repr__(self):
         return (
-            f"<TransactionOut(tid={self.tid}, wallet={self.wallet}, amount={self.amount}, "
-            f"operating_fee={self.operating_fee}, txn_hash={self.txn_hash}, msg={self.msg}, "
-            f"status={self.status}, request_at={self.request_at}, operating_at={self.operating_at}, "
-            f"tx_completed_at={self.tx_completed_at}, result_at={self.result_at}, "
-            f"created_at={self.created_at}, updated_at={self.updated_at})>"
+            f"<TransactionOut(tid={self.tid}, owner_id={self.owner_id}, wallet={self.wallet}, "
+            f"amount={self.amount}, operating_fee={self.operating_fee}, txn_hash={self.txn_hash}, "
+            f"msg={self.msg}, status={self.status}, request_at={self.request_at}, "
+            f"operating_at={self.operating_at}, tx_completed_at={self.tx_completed_at}, "
+            f"result_at={self.result_at}, created_at={self.created_at}, updated_at={self.updated_at}>"
         )
 
 
 def make_transaction_out(
     wallet: str,
+    owner_id: str,
     amount: float = 0,
 ) -> TransactionOut:
     """
@@ -83,6 +85,7 @@ def make_transaction_out(
     operating_fee = amount * 0.2
     return TransactionOut(
         tid=tid,
+        owner_id=owner_id,
         wallet=wallet,
         amount=amount,
         operating_fee=operating_fee,
@@ -96,7 +99,15 @@ def get_txn_out_by_txn_hash_is_null(db):
 
 
 def get_txn_out_by_status_not_clear(db):
-    return db.query(TransactionOut).filter(TransactionOut.status != 5).all()
+    return (
+        db.query(TransactionOut)
+        .filter(TransactionOut.status != 5, TransactionOut.status != 0)
+        .all()
+    )
+
+
+def get_txn_out_by_owner_id(db, owner_id) -> list[TransactionOut]:
+    return db.query(TransactionOut).filter_by(owner_id=owner_id).all()
 
 
 def get_txn_out_by_wallet(db, wallet):

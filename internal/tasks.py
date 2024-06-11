@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 
 from internal.blockchain import (
@@ -75,7 +76,7 @@ def schedule_token_checker():
         logger.info(f"schedule_token_checker: check txn hashes - {db_txns}")
 
         for db_txn in db_txns:
-            logger.info(f"schedule_token_checker: db_workout wallet - {db_txn.wallet}")
+            logger.info(f"schedule_token_checker: txn wallet - {db_txn.wallet}")
             if is_valid_polygon_address(db_txn.wallet) is False:
                 logger.error(f"uid - {db_txn.uid}, Invalid address - {db_txn.wallet}")
                 continue
@@ -85,26 +86,28 @@ def schedule_token_checker():
             tx_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
             if tx_receipt is None:
                 db_txn.status = 2
-                db_txn.tx_completed_at = datetime.now()
+                db_txn.operating_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: tx_receipt is None")
 
             if tx_receipt.status == 1:
                 db_txn.status = 5
+                db_txn.operating_at = datetime.now()
                 db_txn.tx_completed_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: status: receipt is finished")
             else:
                 db_txn.status = 3
-                db_txn.tx_completed_at = datetime.now()
+                db_txn.operating_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: status: receipt is not finished")
 
             if tx_receipt.blockNumber is None:
                 db_txn.status = 4
+                db_txn.operating_at = datetime.now()
                 db.merge(db_txn)
                 db.flush()
                 logger.info(f"schedule_token_checker: status: blockNumber is None")
@@ -116,7 +119,7 @@ def schedule_token_checker():
 
     except Exception as e:
         db.rollback()
-        logger.error(f"schedule_token_checker: error - {e}")
+        logger.error(f"schedule_token_checker: error - {traceback.format_exc()}")
 
     finally:
         db.close()
