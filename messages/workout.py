@@ -130,3 +130,41 @@ class WorkoutGetTypeRequest(BaseModel):
                 "ptype": 0,
             }
         }
+
+
+class WorkoutGetUserRequest(BaseModel):
+    ptype: int
+    email: Optional[str] = None
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "test@example.com",
+                "ptype": 0,
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
+class WorkoutGetSearchRequest(BaseModel):
+    ptype: int
+    email: str
+    start_date: str = None
+    end_date: Optional[str] = None
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "test@example.com",
+                "ptype": 0,
+                "start_date": "2021-07-01",
+                "end_date": "2021-07-01",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
