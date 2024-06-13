@@ -23,7 +23,7 @@ from internal.log import logger
 from internal.mysql_db import SessionLocal, get_db
 from internal.utils import verify_password, exception_handler
 from messages.jwt_auth import TokenData
-from models.user import get_user_by_email, User
+from models.user import get_user_by_email, User, get_active_user_by_email
 
 SECRET_KEY = auth["secret"]
 DATA_SECRET_KEY = auth["data_secret"]
@@ -138,7 +138,7 @@ def get_current_user(
         logger.error(f"get_current_user: {traceback.format_exc()}")
         raise JWTErrorsException()
 
-    user = get_user_by_email(db, email)
+    user = get_active_user_by_email(db, email)
     if user is None:
         raise CredentialException()
     return user, db

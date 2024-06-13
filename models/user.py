@@ -110,6 +110,22 @@ def get_user_exist_by_email(db: SessionLocal, email: str):
 
 
 @exception_handler
+def get_active_user_by_email(db: SessionLocal, email: str) -> User:
+    """
+    email로 사용자를 조회한다.
+
+    :param db: db session
+    :param email: user email
+    :return: user
+    """
+    return (
+        db.query(User)
+        .filter(User.email == email, User.status == 1, User.email_verified == "Y")
+        .first()
+    )
+
+
+@exception_handler
 def get_users(db: SessionLocal, offset: int = 0, limit: int = 50) -> User:
     """
     사용자의 이메일 인증을 확인한다.

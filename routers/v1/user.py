@@ -45,6 +45,7 @@ from models.user import (
     get_users,
     get_user_exist_by_email,
     User,
+    get_active_user_by_email,
 )
 from models.user_check import (
     make_user_check,
@@ -73,7 +74,7 @@ async def post_login_user_api(
     try:
         email = user.email
 
-        db_user = get_user_by_email(db, email)
+        db_user = get_active_user_by_email(db, email)
         logger.info(f"post_login_user_api: {db_user}")
         if db_user is None:
             raise UserNotExistsException
