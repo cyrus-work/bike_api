@@ -135,7 +135,7 @@ async def post_workout_keep_api(
         duration_sec = duration
         db_workout.updated_at = datetime.now()
 
-        # coint, point 계산
+        # coin, point 계산
         minute_diff = int(duration_sec / 60)
         if minute_diff < 3:
             logger.info(f"invalid minute_diff: {minute_diff}")

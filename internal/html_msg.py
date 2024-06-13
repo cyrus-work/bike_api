@@ -1,5 +1,5 @@
 def make_url(prefix_url, uid, checker):
-    msg_link = "%s/v2/user/email_confirm?email=%s&checker=%s" % (
+    msg_link = "%s/user/email_confirm?email=%s&checker=%s" % (
         prefix_url,
         uid,
         checker,
