@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="enabledOnReformat" value="true" />
+    <option name="executionMode" value="BINARY" />
+    <option name="pathToExecutable" value="C:\Users\yaran\AppData\Local\Programs\Python\Python312\Scripts\black.exe" />
+    <option name="sdkName" value="Remote Python 3.12.3 (sftp://ubuntu@cyrus-bike-api:22/home/ubuntu/.virtualenvs/bikeApi/bin/python)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.12.3 (sftp://ubuntu@cyrus-bike-api:22/home/ubuntu/.virtualenvs/bikeApi/bin/python)" project-jdk-type="Python SDK" />
+</project>

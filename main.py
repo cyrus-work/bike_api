@@ -29,7 +29,6 @@ from routers.v1.rewards import router as v1_rewards_router
 from routers.v1.user import router as v1_user_router
 from routers.v1.wallets import router as v1_wallet_router
 from routers.v1.workout import router as v1_workout_router
-from routers.v2.user import router as v2_user_router
 
 app = FastAPI()
 
@@ -66,8 +65,6 @@ app.include_router(v1_bike_router, prefix="/bike", tags=["bike"])
 app.include_router(v1_wallet_router, prefix="/wallet", tags=["wallet"])
 app.include_router(v1_workout_router, prefix="/workout", tags=["workout"])
 app.include_router(v1_rewards_router, prefix="/v1/rewards", tags=["rewards"])
-
-app.include_router(v2_user_router, prefix="/v2/user", tags=["users"])
 
 app.include_router(admin_user_info_router, prefix="/admin/user", tags=["admin"])
 app.include_router(admin_workout_router, prefix="/admin/workout", tags=["admin"])

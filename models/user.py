@@ -20,7 +20,7 @@ class User(Base):
     agreement1 = Column(CHAR(1), default="N")
     agreement2 = Column(CHAR(1), default="N")
     agreement3 = Column(CHAR(1), default="N")
-    status = Column(Integer, default=0, comment="0: 가입대기, 1: 가입")
+    status = Column(Integer, default=0, comment="0: 가입대기, 1: 가입, 2: 탈퇴")
     level = Column(Integer, default=0, comment="0: disable, 1: 일반유저, 9: 관리자")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

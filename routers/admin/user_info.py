@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, APIRouter
 
 from internal.exceptions import UserNotExistsException
 from internal.jwt_auth import admin_required
@@ -15,7 +15,8 @@ from models.user_wallet import (
     get_user_info_by_wallet_exist,
     get_user_info_by_wallet,
 )
-from routers.v2.user import router
+
+router = APIRouter()
 
 
 @router.get("/list")
@@ -94,7 +95,9 @@ async def post_wallet_exist(req: UserSearchWalletRequest, user=Depends(admin_req
 
 
 @router.post("/delete")
-async def delete_user_by_email_api(req: UserEmailRequest, user=Depends(admin_required)):
+async def post_delete_user_by_email_api(
+    req: UserEmailRequest, user=Depends(admin_required)
+):
     """
     사용자 삭제
 
@@ -102,10 +105,11 @@ async def delete_user_by_email_api(req: UserEmailRequest, user=Depends(admin_req
     :param user: admin_required
     :return:
     """
-    logger.info(f">>> delete_user_by_email_api: {req}")
+    logger.info(f">>> post_delete_user_by_email_api: {req}")
 
     try:
         admin, db = user
+
         email = req.email
 
         db_user = get_user_by_email(db, email)
@@ -115,8 +119,8 @@ async def delete_user_by_email_api(req: UserEmailRequest, user=Depends(admin_req
         db.delete(db_user)
         db.commit()
 
-        logger.info(f"delete_user_by_email_api: {email} delete success")
+        logger.info(f"post_delete_user_by_email_api: {email} delete success")
         return {"message": "delete success"}
 
     finally:
-        logger.info(f">>> delete_user_by_email_api end")
+        logger.info(f">>> post_delete_user_by_email_api end")
