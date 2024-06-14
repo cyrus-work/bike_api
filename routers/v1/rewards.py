@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from internal.exceptions import RewardWorkoutNotExistsException
 from internal.jwt_auth import get_current_user
 from internal.log import logger
+from messages.wallets import WalletTxnGetMonthReq
 from models.point_out import make_point_out
 from models.transaction_out import make_transaction_out, TransactionOut
 from models.user import User
@@ -126,7 +127,9 @@ async def post_total_rewards_api(user: User = Depends(get_current_user)):
 
 
 @router.post("/point_txn_list_by_owner_id")
-async def post_txn_list_by_owner_id_api(user: User = Depends(get_current_user)):
+async def post_txn_list_by_owner_id_api(
+    req: WalletTxnGetMonthReq, user: User = Depends(get_current_user)
+):
     """
     Get all rewards
 
@@ -137,9 +140,25 @@ async def post_txn_list_by_owner_id_api(user: User = Depends(get_current_user)):
     try:
         db_user, db = user
 
+        if req.month is None:
+            month_str = datetime.now().strftime("%Y-%m")
+        else:
+            month_str = req.month
+        year, month = map(int, month_str.split("-"))
+
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+
         db_txns = (
             db.query(TransactionOut)
-            .filter(TransactionOut.owner_id == db_user.uid)
+            .filter(
+                TransactionOut.owner_id == db_user.uid,
+                TransactionOut.operating_at >= start_date,
+                TransactionOut.operating_at < end_date,
+            )
             .all()
         )
         logger.info(f"post_txn_list_by_owner_id_api db_txns: {db_txns}")
@@ -151,7 +170,9 @@ async def post_txn_list_by_owner_id_api(user: User = Depends(get_current_user)):
 
 
 @router.post("/coin_txn_list_by_owner_id")
-async def post_txn_list_by_owner_id_and_coint_api(user: User = Depends(get_current_user)):
+async def post_txn_list_by_owner_id_and_coint_api(
+    req: WalletTxnGetMonthReq, user: User = Depends(get_current_user)
+):
     """
     Get all rewards
 
@@ -162,9 +183,25 @@ async def post_txn_list_by_owner_id_and_coint_api(user: User = Depends(get_curre
     try:
         db_user, db = user
 
+        if req.month is None:
+            month_str = datetime.now().strftime("%Y-%m")
+        else:
+            month_str = req.month
+        year, month = map(int, month_str.split("-"))
+
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+
         db_txns = (
             db.query(TransactionOut)
-            .filter(TransactionOut.owner_id == db_user.uid)
+            .filter(
+                TransactionOut.owner_id == db_user.uid,
+                TransactionOut.operating_at >= start_date,
+                TransactionOut.operating_at < end_date,
+            )
             .all()
         )
         logger.info(f"post_txn_list_by_owner_id_and_coint_api db_txns: {db_txns}")

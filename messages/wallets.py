@@ -33,3 +33,14 @@ class WalletFailMsg(BaseModel):
     error_code: int
     error_message: str
     error_detail: str
+
+
+class WalletTxnGetMonthReq(BaseModel):
+    month: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "month": "2021-07",
+            }
+        }
