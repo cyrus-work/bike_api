@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
-from fastapi import Header, Depends
+from fastapi import Header, Depends, Cookie
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError
@@ -43,6 +43,17 @@ def authenticate_user(email: str, password: str):
     if not verify_password(password, user.password):
         return False
     return user
+
+
+def get_active_auth_user(email: str, password: str):
+    logger.info(f"get_active_auth_user: {email}")
+    db = SessionLocal()
+    db_user = get_active_user_by_email(db, email)
+    if not db_user:
+        return False
+    if not verify_password(password, db_user.hashed_pwd):
+        return False
+    return db_user
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -144,7 +155,32 @@ def get_current_user(
     return user, db
 
 
+@exception_handler
+def get_access_token_from_cookie(token: str):
+    logger.info(">>> get_access_token_from_cookie start")
+    db = SessionLocal()
+
+    try:
+        access_token_bytes = token.encode("utf-8")
+
+        payload = jwt.decode(access_token_bytes, auth["secret"], algorithms=["HS256"])
+        email: str = payload.get("email")
+        if email is None:
+            raise EmailNotExistException()
+
+    except ExpiredSignatureError:
+        logger.error(f"get_access_token_from_cookie: {traceback.format_exc()}")
+        raise JWTDataExpiredException()
+
+    user = get_active_user_by_email(db, email)
+    if user is None:
+        raise CredentialException()
+    db.close()
+    return user
+
+
 def admin_required(current_user: User = Depends(get_current_user)):
+    logger.info(f">>> admin_required start: {current_user}")
     user, db = current_user
     if user.level != 9:
         raise AdminRequiredException()

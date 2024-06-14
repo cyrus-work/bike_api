@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+<h1>Login</h1>
+<form id="loginForm" onsubmit="login(event)">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username"><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password"><br><br>
+    <button type="submit">Login</button>
+</form>
+
+<script>
+    async function login(event) {
+        event.preventDefault();
+        const form = document.getElementById('loginForm');
+        const formData = new FormData(form);
+        // FormData 객체의 내용을 콘솔에 출력합니다.
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        const response = await fetch('/admin/bike/token', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        console.log('data: ' + data)
+        if (data.access_token) {
+            document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax; HttpOnly`;
+            window.location.href = '/admin/bike/upload_form';
+        } else {
+            console.error('Login failed: No access token received.');
+        }
+    }
+</script>
+</body>
+</html>
