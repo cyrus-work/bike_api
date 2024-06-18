@@ -37,14 +37,14 @@ class UserWalletView(Base):
 
 
 @exception_handler
-def get_user_wallets(session):
+def get_user_wallets(session, offset=0, limit=50):
     """
     Get user wallets
 
     :param session: session
     :return: UserWalletView
     """
-    return session.query(UserWalletView).all()
+    return session.query(UserWalletView).offset(offset).limit(limit).all()
 
 
 @exception_handler
@@ -107,3 +107,14 @@ def get_user_info_by_wallet(db, wallet):
     :return: User
     """
     return db.query(UserWalletView).filter_by(address=wallet).first()
+
+
+@exception_handler
+def get_counts_of_user_wallets(session):
+    """
+    Get counts of user wallets
+
+    :param session: session
+    :return: int
+    """
+    return session.query(UserWalletView).count()

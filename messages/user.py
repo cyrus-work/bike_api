@@ -242,3 +242,21 @@ class UserSearchWalletRequest(BaseModel):
                 "wallet": "0x2B00D03AeeAe930Fe5BB5dcf56B82Bb715Ce522A",
             }
         }
+
+
+"""
+Admin messages
+"""
+
+
+class UserListGetReq(BaseModel):
+    """
+    User list get request model
+    email: User email(str)
+    """
+
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {"example": {"offset": 0, "limit": 50}}

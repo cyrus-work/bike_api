@@ -78,6 +78,10 @@ def get_user_workout_view_by_type(
     )
 
 
+def get_count_of_workout_by_type(db: SessionLocal, workout_type: int):
+    return db.query(UserWorkoutView).filter_by(workout_type=workout_type).count()
+
+
 def get_user_workout_view_by_email_and_ptype(
     db: SessionLocal, email: str, workout_type: int, offset: int = 0, limit: int = 50
 ):
@@ -88,6 +92,16 @@ def get_user_workout_view_by_email_and_ptype(
         .offset(offset)
         .limit(limit)
         .all()
+    )
+
+
+def get_count_user_workout_view_by_email_and_ptype(
+    db: SessionLocal, email: str, workout_type: int
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter_by(user_email=email, workout_type=workout_type)
+        .count()
     )
 
 

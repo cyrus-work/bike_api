@@ -280,8 +280,9 @@ async def get_not_calculated_token_api(user: User = Depends(get_current_user)):
     """
     logger.info(f">>> get_not_calculated_token_api start")
 
-    db_user, db = user
     try:
+        db_user, db = user
+
         db_workout = get_sum_of_not_calculated_token_by_user_id(
             db, db_user.uid
         )

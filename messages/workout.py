@@ -123,11 +123,15 @@ class WorkoutCreateMsg(BaseModel):
 
 class WorkoutGetTypeRequest(BaseModel):
     ptype: int
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
         schema_extra = {
             "example": {
                 "ptype": 0,
+                "offset": 0,
+                "limit": 50,
             }
         }
 

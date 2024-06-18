@@ -95,3 +95,13 @@ def get_bikes_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Bi
     :return: list[Bike]
     """
     return db.query(Bike).offset(offset).limit(limit).all()
+
+
+def get_bikes_count_all(db: SessionLocal) -> int:
+    """
+    Get all bikes count
+
+    :param db: database session
+    :return: int
+    """
+    return db.query(Bike).count()

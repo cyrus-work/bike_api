@@ -6,24 +6,25 @@ from internal.log import logger
 from messages.user import (
     UserSearchFlagRequest,
     UserEmailRequest,
-    UserSearchWalletRequest,
+    UserSearchWalletRequest, UserListGetReq,
 )
 from models.user import get_user_by_email
 from models.user_wallet import (
     get_user_wallets,
     get_user_info_by_email_verified,
     get_user_info_by_wallet_exist,
-    get_user_info_by_wallet,
+    get_user_info_by_wallet, get_counts_of_user_wallets,
 )
 
 router = APIRouter()
 
 
 @router.get("/list")
-async def get_user_info(user=Depends(admin_required)):
+async def get_user_info(req:UserListGetReq, user=Depends(admin_required)):
     """
     사용자 정보 조회
 
+    :param req: UserListGetReq 모델
     :param user: admin_required
     :return:
     """
@@ -31,10 +32,15 @@ async def get_user_info(user=Depends(admin_required)):
 
     try:
         db_user, db = user
-        db_user_info = get_user_wallets(db)
 
-        logger.info(f"get_user_info: {db_user_info}")
-        return db_user_info
+        offset = req.offset
+        limit = req.limit
+
+        db_user_info = get_user_wallets(db, offset, limit)
+        db_count = get_counts_of_user_wallets(db)
+
+        logger.info(f"get_user_info: {db_user_info}, {db_count}")
+        return {"count": db_count, "data": db_user_info}
 
     finally:
         logger.info(f">>> get_user_info end")

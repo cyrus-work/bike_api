@@ -57,3 +57,21 @@ class BikeDeleteMsg(Message):
 class BikeManagementFailMsg(Message):
     class Config:
         schema_extra = {"example": {"code": 461, "content": "Create bike failed."}}
+
+
+"""
+Admin messages
+"""
+
+
+class BikeListGetReq(BaseModel):
+    offset: int = 0
+    limit: int = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "offset": 0,
+                "limit": 50,
+            }
+        }

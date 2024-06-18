@@ -266,6 +266,19 @@ def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) 
     )
 
 
+def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) -> int:
+    return (
+        db.query(func.sum(DailyWorkout.point))
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 1,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .scalar()
+    )
+
+
 def get_workout_list_not_calculated_coin_by_user_id(
         db: SessionLocal, owner_id: str
 ) -> list[DailyWorkout]:

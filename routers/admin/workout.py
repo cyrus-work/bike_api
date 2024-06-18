@@ -13,6 +13,8 @@ from models.user_workout import (
     get_user_workout_view_by_type,
     get_user_workout_view_by_email_and_ptype,
     get_user_workout_view_by_email_and_date,
+    get_count_of_workout_by_type,
+    get_count_user_workout_view_by_email_and_ptype,
 )
 
 router = APIRouter()
@@ -46,11 +48,16 @@ async def get_workout_by_type(req: WorkoutGetTypeRequest, user=Depends(admin_req
     """
     logger.info(f">>> get_workout_by_type start")
 
-    db_user, db = user
     try:
-        db_workouts = get_user_workout_view_by_type(db, req.ptype)
-        logger.info(f"get_workout_by_type db_workouts: {db_workouts}")
-        return db_workouts
+        db_user, db = user
+
+        offset = req.offset
+        limit = req.limit
+
+        db_workouts = get_user_workout_view_by_type(db, req.ptype, offset, limit)
+        db_counts = get_count_of_workout_by_type(db, req.ptype)
+        logger.info(f"get_workout_by_type db_workouts: {db_workouts}, {db_counts}")
+        return {"count": db_counts, "data": db_workouts}
 
     finally:
         logger.info(f">>> get_workout_by_type end")
@@ -76,8 +83,9 @@ async def get_workout_by_user(req: WorkoutGetUserRequest, user=Depends(admin_req
         db_workouts = get_user_workout_view_by_email_and_ptype(
             db, email, ptype, offset, limit
         )
-        logger.info(f"get_workout_by_user db_workouts: {db_workouts}")
-        return db_workouts
+        db_counts = get_count_user_workout_view_by_email_and_ptype(db, email, ptype)
+        logger.info(f"get_workout_by_user db_workouts: {db_workouts}, {db_counts}")
+        return {"count": db_counts, "data": db_workouts}
 
     finally:
         logger.info(f">>> get_workout_by_user end")

@@ -32,8 +32,14 @@ from messages.bike import (
     BikeGetRequest,
     BikeDeleteMsg,
     BikeCreateMsg,
+    BikeListGetReq,
 )
-from models.bike import get_bikes_all, make_bike, get_bike_by_bike_no
+from models.bike import (
+    get_bikes_all,
+    make_bike,
+    get_bike_by_bike_no,
+    get_bikes_count_all,
+)
 
 templates = Jinja2Templates(directory="templates")
 
@@ -41,20 +47,26 @@ router = APIRouter()
 
 
 @router.get("/list")
-async def get_bikes_all_api(user=Depends(admin_required)):
+async def get_bikes_all_api(req: BikeListGetReq, user=Depends(admin_required)):
     """
     Get all bikes
 
+    :param req: BikeListGetReq model
+    :param user: admin_required 리턴값
     :return:
     """
     logger.info(f">>> get_bikes_all_api start")
 
-    admin, db = user
-
     try:
-        db_bikes = get_bikes_all(db)
-        logger.info(f"get_bikes_all_api db_bikes: {db_bikes}")
-        return db_bikes
+        admin, db = user
+
+        offset = req.offset
+        limit = req.limit
+
+        db_bikes = get_bikes_all(db, offset, limit)
+        db_count = get_bikes_count_all(db)
+        logger.info(f"get_bikes_all_api db_bikes: {db_bikes}, {db_count}")
+        return {"count": db_count, "data": db_bikes}
 
     finally:
         logger.info(f">>> get_bikes_all_api end")
