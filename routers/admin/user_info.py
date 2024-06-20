@@ -6,21 +6,23 @@ from internal.log import logger
 from messages.user import (
     UserSearchFlagRequest,
     UserEmailRequest,
-    UserSearchWalletRequest, UserListGetReq,
+    UserSearchWalletRequest,
+    UserListGetReq,
 )
 from models.user import get_user_by_email
 from models.user_wallet import (
     get_user_wallets,
     get_user_info_by_email_verified,
     get_user_info_by_wallet_exist,
-    get_user_info_by_wallet, get_counts_of_user_wallets,
+    get_user_info_by_wallet,
+    get_counts_of_user_wallets,
 )
 
 router = APIRouter()
 
 
-@router.get("/list")
-async def get_user_info(req:UserListGetReq, user=Depends(admin_required)):
+@router.post("/list")
+async def get_user_info(req: UserListGetReq, user=Depends(admin_required)):
     """
     사용자 정보 조회
 

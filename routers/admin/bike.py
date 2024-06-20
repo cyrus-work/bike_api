@@ -46,7 +46,7 @@ templates = Jinja2Templates(directory="templates")
 router = APIRouter()
 
 
-@router.get("/list")
+@router.post("/list")
 async def get_bikes_all_api(req: BikeListGetReq, user=Depends(admin_required)):
     """
     Get all bikes

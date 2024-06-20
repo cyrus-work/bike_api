@@ -10,7 +10,7 @@ from models.wallet import get_wallets
 router = APIRouter()
 
 
-@router.get("/list")
+@router.post("/list")
 async def get_wallets_api(user=Depends(admin_required)):
     """
     Get all wallets
