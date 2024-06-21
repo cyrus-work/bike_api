@@ -33,18 +33,18 @@ async def post_wallets_create_api(
 
         db_wallet = get_wallet_by_owner_id(db, owner_id=db_user.uid)
         if db_wallet:
-            logger.info(f"post_wallets_create_api update")
+            logger.info(f"    post_wallets_create_api update")
             db_wallet.address = address
             db.merge(db_wallet)
         else:
-            logger.info(f"post_wallets_create_api create")
+            logger.info(f"    post_wallets_create_api create")
             db_wallet = make_wallet(owner_id=db_user.uid, address=address)
             db.add(db_wallet)
 
         db.commit()
         db.refresh(db_wallet)
 
-        logger.info(f"post_wallets_create_api db_wallet: {db_wallet}")
+        logger.info(f"    post_wallets_create_api db_wallet: {db_wallet}")
         return db_wallet
 
     finally:
@@ -62,7 +62,7 @@ async def get_wallets_api(db: SessionLocal = Depends(get_db)):
 
     try:
         wallets = get_wallets(db)
-        logger.info(f"get_wallets_api wallets: {wallets}")
+        logger.info(f"    get_wallets_api wallets: {wallets}")
         return wallets
 
     finally:
@@ -83,7 +83,7 @@ async def get_wallets_own_api(user: User = Depends(get_current_user)):
         owner_id = db_user.uid
 
         wallets = get_wallet_by_owner_id(db, owner_id=owner_id)
-        logger.info(f"get_wallets_own_api wallets: {wallets}")
+        logger.info(f"    get_wallets_own_api wallets: {wallets}")
         return wallets
 
     finally:

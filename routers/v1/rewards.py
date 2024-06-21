@@ -169,6 +169,8 @@ async def post_txn_list_by_owner_id_api(
         db_txns = get_point_out_by_pid(db, db_user.uid, start_date, end_date)
 
         logger.info(f"    post_txn_list_by_owner_id_api db_txns: {db_txns}")
+        if db_txns is None:
+            db_txns = []
         return db_txns
 
     finally:
@@ -196,6 +198,8 @@ async def post_txn_list_by_owner_id_and_coint_api(
         db_txns = get_txns_by_owner_id(db, db_user.uid, start_date, end_date)
 
         logger.info(f"    post_txn_list_by_owner_id_and_coint_api db_txns: {db_txns}")
+        if db_txns is None:
+            db_txns = []
         return db_txns
 
     finally:

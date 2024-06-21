@@ -69,14 +69,14 @@ async def post_workout_create_api(
         if db_bike is None:
             raise BikeNotExistsException
 
-        logger.info(f"post_workout_create_api: make_daily_production")
+        logger.info(f"    post_workout_create_api: make_daily_production")
         # workout을 생성한다.
         db_daily = make_workout(db_user.uid, db_bike.bid, point_type)
         db.add(db_daily)
         db.commit()
 
         db.refresh(db_daily)
-        logger.info(f"post_workout_create_api db_daily: {db_daily}")
+        logger.info(f"    post_workout_create_api db_daily: {db_daily}")
 
         return WorkoutCreateMsg(workout_id=db_daily.wid)
 
@@ -114,7 +114,7 @@ async def post_workout_keep_api(
         if db_last_workout is None:
             raise LastWorkoutNotExistsException
 
-        logger.info(f"post_workout_keep_api db_workout: {db_last_workout}")
+        logger.info(f"    post_workout_keep_api db_workout: {db_last_workout}")
 
         if wid != db_last_workout.wid:
             raise LastWorkoutIdNotMatchException
@@ -138,11 +138,11 @@ async def post_workout_keep_api(
         # coin, point 계산
         minute_diff = int(duration_sec / 60)
         if minute_diff < 3:
-            logger.info(f"invalid minute_diff: {minute_diff}")
+            logger.info(f"    post_workout_keep_api invalid minute_diff: {minute_diff}")
             coin = 0
             point = 0
         else:
-            logger.info(f"valid minute_diff: {minute_diff}")
+            logger.info(f"    post_workout_keep_api valid minute_diff: {minute_diff}")
             if db_workout.ptype == 0:
                 coin = minute_diff * reward["token"]
             elif db_workout.ptype == 1:
@@ -157,8 +157,7 @@ async def post_workout_keep_api(
         db.commit()
 
         db.refresh(db_workout)
-        logger.info(f"post_workout_keep_api db_workout: {db_workout}")
-
+        logger.info(f"    post_workout_keep_api db_workout: {db_workout}")
         return {"message": "update success"}
 
     finally:
@@ -174,14 +173,14 @@ async def post_get_workout_api(user: User = Depends(get_current_user)):
     :param user: User, db 정보
     :return: WorkoutCreateMsg 모델
     """
-    logger.info(f"post_get_workout_api start")
+    logger.info(f">>> post_get_workout_api start")
 
     try:
         db_user, db = user
 
         db_workout = get_workout_by_owner_id(db, db_user.uid)
 
-        logger.info(f"post_get_workout_api db_workout: {db_workout}")
+        logger.info(f"    post_get_workout_api db_workout: {db_workout}")
         return db_workout
 
     finally:
@@ -208,7 +207,7 @@ async def post_get_workout_with_wid__api(
 
         db_workout = get_workout_by_wid(db, wid)
 
-        logger.info(f"post_get_workout_api db_workout: {db_workout}")
+        logger.info(f"    post_get_workout_api db_workout: {db_workout}")
         return db_workout
 
     finally:
@@ -240,12 +239,12 @@ async def post_get_workout_duration_api(
         else:
             end_date = daily.end_date + " 23:59:59"
 
-        logger.info(f"post_get_workout_duration_api: {start_date}, {end_date}")
+        logger.info(f"    post_get_workout_duration_api: {start_date}, {end_date}")
 
         db_workout = get_workout_duration_by_date_and_owner_id(
             db, db_user.uid, start_date, end_date
         )
-        logger.info(f"post_get_workout_duration_api db_workout: {db_workout}")
+        logger.info(f"    post_get_workout_duration_api db_workout: {db_workout}")
         return db_workout
 
     finally:
@@ -266,7 +265,7 @@ async def get_workout_duration_api(user: User = Depends(get_current_user)):
         db_user, db = user
 
         db_workout = get_workout_duration_sum_by_owner_id_and_date(db, db_user.uid)
-        logger.info(f"get_workout_duration_api db_workout: {db_workout}")
+        logger.info(f"    get_workout_duration_api db_workout: {db_workout}")
         return db_workout
 
     finally:
@@ -286,7 +285,7 @@ async def get_not_calculated_token_api(user: User = Depends(get_current_user)):
         db_workout = get_sum_of_not_calculated_token_by_user_id(
             db, db_user.uid
         )
-        logger.info(f"get_not_calculated_token_api db_workout: {db_workout}")
+        logger.info(f"    get_not_calculated_token_api db_workout: {db_workout}")
         return db_workout
 
     finally:
@@ -307,7 +306,7 @@ async def get_workout_by_date_and_owner_id_api(
         owner_id = db_user.uid
 
         db_workout = get_monthly_summary_by_user(db, owner_id, month)
-        logger.info(f"get_workout_by_date_and_owner_id_api db_workout: {db_workout}")
+        logger.info(f"    get_workout_by_date_and_owner_id_api db_workout: {db_workout}")
         return db_workout
 
     finally:
