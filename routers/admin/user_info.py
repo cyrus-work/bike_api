@@ -16,6 +16,9 @@ from models.user_wallet import (
     get_user_info_by_wallet_exist,
     get_user_info_by_wallet,
     get_counts_of_user_wallets,
+    get_user_wallets_by_email,
+    get_count_of_user_wallets_by_exist,
+    get_count_of_user_wallets_by_email_verified,
 )
 
 router = APIRouter()
@@ -64,11 +67,14 @@ async def post_email_verification(
     try:
         db_user, db = user
         verified = req.verified
+        offset = req.offset
+        limit = req.limit
 
-        db_user_info = get_user_info_by_email_verified(db, verified)
+        db_user_info = get_user_info_by_email_verified(db, verified, offset, limit)
+        db_count = get_count_of_user_wallets_by_email_verified(db, verified)
 
-        logger.info(f"post_email_verification: {db_user_info}")
-        return db_user_info
+        logger.info(f"post_email_verification: {db_user_info, db_count}")
+        return {"count": db_count, "data": db_user_info}
 
     finally:
         logger.info(f">>> post_email_verification end")
@@ -89,17 +95,46 @@ async def post_wallet_exist(req: UserSearchWalletRequest, user=Depends(admin_req
         db_user, db = user
         exist = req.exist
         wallet = req.wallet
+        offset = req.offset
+        limit = req.limit
 
         if wallet is None:
-            db_users = get_user_info_by_wallet_exist(db, exist)
+            db_users = get_user_info_by_wallet_exist(db, exist, offset, limit)
+            db_count = get_count_of_user_wallets_by_exist(db, exist)
+            logger.info(f"post_wallet_exist: {db_users, db_count}")
+            return {"count": db_count, "data": db_users}
+
         else:
             db_users = get_user_info_by_wallet(db, wallet)
-
-        logger.info(f"post_wallet_exist: {db_users}")
-        return db_users
+            logger.info(f"post_wallet_exist: {db_users}")
+            return db_users
 
     finally:
         logger.info(f">>> post_wallet_exist end")
+
+
+@router.post("/info")
+async def post_get_user_info_api(req: UserEmailRequest, user=Depends(admin_required)):
+    """
+    사용자 정보 조회
+
+    :param req: UserEmailRequest 모델
+    :param user: admin_required
+    :return:
+    """
+    logger.info(f">>> post_get_user_info_api start")
+
+    try:
+        db_user, db = user
+        email = req.email
+
+        db_user_info = get_user_wallets_by_email(db, email)
+
+        logger.info(f"post_get_user_info_api: {db_user_info}")
+        return db_user_info
+
+    finally:
+        logger.info(f">>> post_get_user_info_api end")
 
 
 @router.post("/delete")

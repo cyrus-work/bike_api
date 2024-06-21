@@ -14,7 +14,7 @@ from models.user_workout import (
     get_user_workout_view_by_email_and_ptype,
     get_user_workout_view_by_email_and_date,
     get_count_of_workout_by_type,
-    get_count_user_workout_view_by_email_and_ptype,
+    get_count_user_workout_view_by_email_and_ptype, get_count_user_workout_view,
 )
 
 router = APIRouter()
@@ -32,8 +32,9 @@ async def get_workout_all(user=Depends(admin_required)):
     db_user, db = user
     try:
         db_workouts = get_user_workout_view(db)
-        logger.info(f"get_workout_all db_workouts: {db_workouts}")
-        return db_workouts
+        db_count = get_count_user_workout_view(db)
+        logger.info(f"get_workout_all db_workouts: {db_workouts, db_count}")
+        return {"count": db_count, "data": db_workouts}
 
     finally:
         logger.info(f">>> get_workout_all end")

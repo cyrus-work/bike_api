@@ -39,6 +39,10 @@ def get_user_workout_view(db: SessionLocal, offset: int = 0, limit: int = 50):
     return db.query(UserWorkoutView).offset(offset).limit(limit).all()
 
 
+def get_count_user_workout_view(db: SessionLocal):
+    return db.query(UserWorkoutView).count()
+
+
 def get_user_workout_view_by_id(
     db: SessionLocal, user_id: str, offset: int = 0, limit: int = 50
 ):

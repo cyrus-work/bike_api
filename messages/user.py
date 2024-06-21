@@ -221,9 +221,17 @@ class UserSearchFlagRequest(BaseModel):
     """
 
     verified: str
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
-        schema_extra = {"example": {"verified": "Y"}}
+        schema_extra = {
+            "example": {
+                "verified": "Y",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
 
 
 class UserSearchWalletRequest(BaseModel):
@@ -234,12 +242,16 @@ class UserSearchWalletRequest(BaseModel):
 
     exist: Optional[bool]
     wallet: Optional[str]
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
         schema_extra = {
             "example": {
                 "exist": True,
                 "wallet": "0x2B00D03AeeAe930Fe5BB5dcf56B82Bb715Ce522A",
+                "offset": 0,
+                "limit": 50,
             }
         }
 
