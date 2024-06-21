@@ -65,7 +65,7 @@ async def get_bikes_all_api(req: BikeListGetReq, user=Depends(admin_required)):
 
         db_bikes = get_bikes_all(db, offset, limit)
         db_count = get_bikes_count_all(db)
-        logger.info(f"get_bikes_all_api db_bikes: {db_bikes}, {db_count}")
+        logger.info(f"    get_bikes_all_api db_bikes: {db_bikes}, {db_count}")
         return {"count": db_count, "data": db_bikes}
 
     finally:
@@ -91,6 +91,7 @@ async def post_bike_info_api(bike: BikeGetRequest, user=Depends(admin_required))
         if db_bike is None:
             raise BikeNotExistsException
 
+        logger.info(f"    post_bike_info_api db_bike: {db_bike}")
         return db_bike
 
     finally:
@@ -118,6 +119,7 @@ async def post_create_bike_api(bike: BikeCreateRequest, user=Depends(admin_requi
         db.add(db_bike)
         db.commit()
         db.refresh(db_bike)
+        logger.info(f"    post_create_bike_api db_bike: {db_bike}")
         return BikeCreateMsg(serial=db_bike.bike_no, code=200, content="success")
 
     finally:
@@ -145,6 +147,7 @@ async def post_delete_bike_api(bike: BikeGetRequest, user=Depends(admin_required
 
         db.delete(db_bike)
         db.commit()
+        logger.info(f"    post_delete_bike_api: {serial} delete success")
         return BikeDeleteMsg(code=200, content="success", serial=serial)
 
     finally:
@@ -158,6 +161,7 @@ async def post_delete_bike_api(bike: BikeGetRequest, user=Depends(admin_required
 
 @router.post("/bulk_create")
 async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(None)):
+    logger.info(f">>> file upload page start")
     db = None
     try:
         db = SessionLocal()
@@ -165,7 +169,7 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
         if db_user is None:
             raise CredentialException()
 
-        logger.info(f">>> file upload page start")
+        logger.info(f"    file upload page start")
 
         contents = await file.read()
         data = BytesIO(contents)
@@ -190,53 +194,70 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
         db.commit()
         return {"code": 200, "content": "success"}
     except Exception as e:
-        logger.info(f"Exception: {traceback.format_exc()}")
+        logger.info(f"    Exception: {traceback.format_exc()}")
         if db:
             db.rollback()
         return {"code": 400, "content": str(e)}
+
+    finally:
+        if db:
+            db.close()
+        logger.info(f">>> file upload page end")
 
 
 @router.get("/upload_form")
 def form(
     Request: Request, access_token: str = Cookie(None)
 ):  # session_token 매개변수 추가
-    logger.info("file upload page")
+    logger.info(">>> file upload form page")
 
     db_user = get_access_token_from_cookie(access_token)
     if db_user is None:
         raise CredentialException()
 
     try:
+        logger.info(f"    file upload form page send")
         return templates.TemplateResponse("upload_form.html", {"request": Request})
 
     except Exception as e:
-        logger.info(f"Exception: {traceback.format_exc()}")
+        logger.error(f"    file upload form page Exception: {e}")
         return {"error": str(e)}
+
+    finally:
+        logger.info(">>> file upload form page end")
 
 
 @router.get("/login_form", response_class=HTMLResponse)
 async def login_page(request: Request):
+    logger.info(">>> login form page")
     return templates.TemplateResponse("login.html", {"request": request})
 
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    logger.info(f"create token page: {form_data}")
-    db_user = get_active_auth_user(form_data.username, form_data.password)
-    if not db_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    logger.info(f">>> login_for_access_token: {form_data}")
+    try:
+        db_user = get_active_auth_user(form_data.username, form_data.password)
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        access_token_expires = timedelta(minutes=auth["access_token_expires"])
+        access_token = create_access_token(
+            data={"email": db_user.email}, expires_delta=access_token_expires
         )
-    access_token_expires = timedelta(minutes=auth["access_token_expires"])
-    access_token = create_access_token(
-        data={"email": db_user.email}, expires_delta=access_token_expires
-    )
-    if not access_token:
-        raise HTTPException(status_code=500, detail="Failed to create access token")
-    response = JSONResponse(content={"access_token": access_token}, status_code=200)
-    response.set_cookie(
-        key="access_token", value=access_token, httponly=True, max_age=1800
-    )
-    return response
+        if not access_token:
+            raise HTTPException(status_code=500, detail="Failed to create access token")
+
+        response = JSONResponse(content={"access_token": access_token}, status_code=200)
+        response.set_cookie(
+            key="access_token", value=access_token, httponly=True, max_age=1800
+        )
+        logger.info(f"    login_for_access_token: {response}")
+        return response
+
+    finally:
+        logger.error(">>> login_for_access_token end")
