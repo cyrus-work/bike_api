@@ -10,7 +10,7 @@ from sqlalchemy import (
 )
 
 from internal.mysql_db import Base
-from internal.utils import generate_hash
+from internal.utils import generate_hash, exception_handler
 
 
 class TransactionOut(Base):
@@ -93,10 +93,12 @@ def make_transaction_out(
     )
 
 
+@exception_handler
 def get_txn_out_by_txn_hash_is_null(db):
     return db.query(TransactionOut).filter_by(status=0, txn_hash=None).all()
 
 
+@exception_handler
 def get_txn_out_by_status_not_clear(db):
     return (
         db.query(TransactionOut)
@@ -105,14 +107,17 @@ def get_txn_out_by_status_not_clear(db):
     )
 
 
+@exception_handler
 def get_txn_out_by_owner_id(db, owner_id) -> list[TransactionOut]:
     return db.query(TransactionOut).filter_by(owner_id=owner_id).all()
 
 
+@exception_handler
 def get_txn_out_by_wallet(db, wallet):
     return db.query(TransactionOut).filter_by(wallet=wallet).all()
 
 
+@exception_handler
 def get_txns_by_owner_id(db, owner_id, start_date, end_date):
     db.query(TransactionOut).filter(
         TransactionOut.owner_id == owner_id,

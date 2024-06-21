@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Date, Integer, DECIMAL
 
 from internal.mysql_db import Base, SessionLocal
+from internal.utils import exception_handler
 
 
 class UserWorkoutView(Base):
@@ -35,14 +36,17 @@ class UserWorkoutView(Base):
         )
 
 
+@exception_handler
 def get_user_workout_view(db: SessionLocal, offset: int = 0, limit: int = 50):
     return db.query(UserWorkoutView).offset(offset).limit(limit).all()
 
 
+@exception_handler
 def get_count_user_workout_view(db: SessionLocal):
     return db.query(UserWorkoutView).count()
 
 
+@exception_handler
 def get_user_workout_view_by_id(
     db: SessionLocal, user_id: str, offset: int = 0, limit: int = 50
 ):
@@ -56,6 +60,7 @@ def get_user_workout_view_by_id(
     )
 
 
+@exception_handler
 def get_user_workout_view_by_bid(
     db: SessionLocal, bid: str, offset: int = 0, limit: int = 50
 ):
@@ -69,6 +74,7 @@ def get_user_workout_view_by_bid(
     )
 
 
+@exception_handler
 def get_user_workout_view_by_type(
     db: SessionLocal, workout_type: int, offset: int = 0, limit: int = 50
 ):
@@ -82,10 +88,12 @@ def get_user_workout_view_by_type(
     )
 
 
+@exception_handler
 def get_count_of_workout_by_type(db: SessionLocal, workout_type: int):
     return db.query(UserWorkoutView).filter_by(workout_type=workout_type).count()
 
 
+@exception_handler
 def get_user_workout_view_by_email_and_ptype(
     db: SessionLocal, email: str, workout_type: int, offset: int = 0, limit: int = 50
 ):
@@ -99,6 +107,7 @@ def get_user_workout_view_by_email_and_ptype(
     )
 
 
+@exception_handler
 def get_count_user_workout_view_by_email_and_ptype(
     db: SessionLocal, email: str, workout_type: int
 ):
@@ -109,6 +118,7 @@ def get_count_user_workout_view_by_email_and_ptype(
     )
 
 
+@exception_handler
 def get_user_workout_view_by_email_and_date(
     db: SessionLocal,
     email: str,

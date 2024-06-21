@@ -85,6 +85,7 @@ def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
     return db.query(Bike).filter_by(bike_no=bike_no).first()
 
 
+@exception_handler
 def get_bikes_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Bike]:
     """
     Get all bikes
@@ -97,6 +98,7 @@ def get_bikes_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Bi
     return db.query(Bike).offset(offset).limit(limit).all()
 
 
+@exception_handler
 def get_bikes_count_all(db: SessionLocal) -> int:
     """
     Get all bikes count

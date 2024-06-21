@@ -4,6 +4,7 @@ from sqlalchemy import Column, String, Integer, CHAR, DECIMAL, Date, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 from internal.mysql_db import SessionLocal
+from internal.utils import exception_handler
 
 Base = declarative_base()
 
@@ -45,6 +46,7 @@ class UserWorkoutDurationView(Base):
         )
 
 
+@exception_handler
 def get_user_workout_duration(db: SessionLocal):
     """
     Get user workout duration

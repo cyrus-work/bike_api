@@ -111,7 +111,7 @@ def get_workout_by_bid(db: SessionLocal, bid: str) -> DailyWorkout:
 
 @exception_handler
 def get_workout_by_owner_id(
-        db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     """
     Get workout by owner_id
@@ -148,10 +148,10 @@ def get_workout_by_wid(db: SessionLocal, wid: str) -> DailyWorkout:
 
 @exception_handler
 def get_workout_duration_by_date_and_owner_id(
-        db: SessionLocal,
-        owner_id: str,
-        start_date: datetime.date,
-        end_date: datetime.date,
+    db: SessionLocal,
+    owner_id: str,
+    start_date: datetime.date,
+    end_date: datetime.date,
 ) -> list[DailyWorkout]:
     """
     Get workout duration sum by date and owner_id
@@ -173,8 +173,9 @@ def get_workout_duration_by_date_and_owner_id(
     )
 
 
+@exception_handler
 def get_workouts_all(
-        db: SessionLocal, offset: int = 0, limit: int = 50
+    db: SessionLocal, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -185,8 +186,9 @@ def get_workouts_all(
     )
 
 
+@exception_handler
 def get_workouts_all_by_owner_id(
-        db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
+    db: SessionLocal, owner_id: str, offset: int = 0, limit: int = 50
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -198,6 +200,7 @@ def get_workouts_all_by_owner_id(
     )
 
 
+@exception_handler
 def get_sum_of_token_requested_by_user_id(db: SessionLocal, owner_id: str) -> int:
     return (
         db.query(func.sum(DailyWorkout.token))
@@ -210,8 +213,9 @@ def get_sum_of_token_requested_by_user_id(db: SessionLocal, owner_id: str) -> in
     )
 
 
+@exception_handler
 def get_sum_of_workout_duration_not_calculated_by_user_id(
-        db: SessionLocal, owner_id: str
+    db: SessionLocal, owner_id: str
 ) -> int:
     return (
         db.query(func.sum(DailyWorkout.duration))
@@ -225,8 +229,9 @@ def get_sum_of_workout_duration_not_calculated_by_user_id(
     )
 
 
+@exception_handler
 def get_sum_of_workout_duration_not_calculated_point_by_user_id(
-        db: SessionLocal, owner_id: str
+    db: SessionLocal, owner_id: str
 ) -> int:
     return (
         db.query(func.sum(DailyWorkout.duration))
@@ -240,6 +245,7 @@ def get_sum_of_workout_duration_not_calculated_point_by_user_id(
     )
 
 
+@exception_handler
 def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) -> int:
     return (
         db.query(func.sum(DailyWorkout.token))
@@ -253,6 +259,7 @@ def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) 
     )
 
 
+@exception_handler
 def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) -> int:
     return (
         db.query(func.sum(DailyWorkout.point))
@@ -266,6 +273,7 @@ def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) 
     )
 
 
+@exception_handler
 def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) -> int:
     return (
         db.query(func.sum(DailyWorkout.point))
@@ -279,8 +287,9 @@ def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) 
     )
 
 
+@exception_handler
 def get_workout_list_not_calculated_coin_by_user_id(
-        db: SessionLocal, owner_id: str
+    db: SessionLocal, owner_id: str
 ) -> list[DailyWorkout]:
     return (
         db.query(DailyWorkout)
@@ -295,6 +304,7 @@ def get_workout_list_not_calculated_coin_by_user_id(
     )
 
 
+@exception_handler
 def get_workout_list_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str):
     return (
         db.query(DailyWorkout)
@@ -309,10 +319,11 @@ def get_workout_list_not_calculated_point_by_user_id(db: SessionLocal, owner_id:
     )
 
 
+@exception_handler
 def get_monthly_summary_by_user(
-        session: SessionLocal,
-        user_id: str,
-        month_str: str = None,
+    session: SessionLocal,
+    user_id: str,
+    month_str: str = None,
 ):
     try:
         logger.info(f">>> get_monthly_summary_by_user start: {user_id}, {month_str}")

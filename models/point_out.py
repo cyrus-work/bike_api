@@ -2,7 +2,7 @@ from sqlalchemy import Column, DECIMAL, DateTime, String
 from datetime import datetime
 
 from internal.mysql_db import SessionLocal, Base
-from internal.utils import generate_hash
+from internal.utils import generate_hash, exception_handler
 
 
 class PointOut(Base):
@@ -75,10 +75,12 @@ def make_point_out(
     )
 
 
+@exception_handler
 def get_point_out_by_email(db, email):
     return db.query(PointOut).filter_by(email=email).all()
 
 
+@exception_handler
 def get_point_out_by_pid(db, pid, start_date, end_date):
     db.query(PointOut).filter(
         PointOut.owner_id == pid,
