@@ -9,13 +9,14 @@ from internal.blockchain import (
 )
 from internal.log import logger
 from internal.mysql_db import SessionLocal
-from internal.utils import is_valid_polygon_address
+from internal.utils import is_valid_polygon_address, exception_handler
 from models.transaction_out import (
     get_txn_out_by_txn_hash_is_null,
     get_txn_out_by_status_not_clear,
 )
 
 
+@exception_handler
 def schedule_token_transfer():
     logger.info(f"schedule_token_transfer: Task is running at - {datetime.now}")
 
@@ -62,6 +63,7 @@ def schedule_token_transfer():
         logger.info(f"schedule_token_transfer: Task is finished at - {datetime.now}")
 
 
+@exception_handler
 def schedule_token_checker():
     logger.info(f"schedule_token_checker: Task is running at - {datetime.now}")
 

@@ -161,11 +161,18 @@ async def post_delete_bike_api(bike: BikeGetRequest, user=Depends(admin_required
 
 @router.post("/bulk_create")
 async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(None)):
+    """
+    대량 업로드
+
+    :param file: 업로드 파일
+    :param access_token: access_token
+    """
     logger.info(f">>> file upload page start")
     db = None
     try:
         db = SessionLocal()
-        db_user = get_access_token_from_cookie(access_token)
+
+        db_user = get_access_token_from_cookie(db, access_token)
         if db_user is None:
             raise CredentialException()
 
@@ -207,34 +214,56 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
 
 @router.get("/upload_form")
 def form(
-    Request: Request, access_token: str = Cookie(None)
+    req: Request, access_token: str = Cookie(None)
 ):  # session_token 매개변수 추가
+    """
+    file upload form page
+
+    :param req: Request
+    :param access_token: access_token
+    """
     logger.info(">>> file upload form page")
 
-    db_user = get_access_token_from_cookie(access_token)
-    if db_user is None:
-        raise CredentialException()
+    db = None
 
     try:
+        db = SessionLocal()
+
+        db_user = get_access_token_from_cookie(db, access_token)
+        if db_user is None:
+            raise CredentialException()
+
         logger.info(f"    file upload form page send")
-        return templates.TemplateResponse("upload_form.html", {"request": Request})
+        return templates.TemplateResponse("upload_form.html", {"request": req})
 
     except Exception as e:
+        if db:
+            db.rollback()
         logger.error(f"    file upload form page Exception: {e}")
         return {"error": str(e)}
 
     finally:
+        if db:
+            db.close()
         logger.info(">>> file upload form page end")
 
 
 @router.get("/login_form", response_class=HTMLResponse)
 async def login_page(request: Request):
+    """
+    login form page
+    """
     logger.info(">>> login form page")
     return templates.TemplateResponse("login.html", {"request": request})
 
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    login for access token
+
+    :param form_data: OAuth2PasswordRequestForm
+    """
     logger.info(f">>> login_for_access_token: {form_data}")
     try:
         db_user = get_active_auth_user(form_data.username, form_data.password)

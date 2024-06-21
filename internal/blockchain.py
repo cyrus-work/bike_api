@@ -10,6 +10,7 @@ from internal.app_config import (
     mainnet,
 )
 from internal.log import logger
+from internal.utils import exception_handler
 
 if setting["test_mode"]:
     logger.info(">>> network config parse testnet")
@@ -24,6 +25,7 @@ else:
 web3 = Web3(Web3.HTTPProvider(polygon_rpc_url))
 
 
+@exception_handler
 def get_check_sum_address(address: str):
     """
     주소를 체크섬 주소로 변환하는 함수
@@ -36,6 +38,7 @@ def get_check_sum_address(address: str):
     return address
 
 
+@exception_handler
 def act_transfer(
     from_address: str, to_address: str, amount: int, private_key_str: str, nonce: int
 ):
@@ -72,6 +75,7 @@ def act_transfer(
     return tx_hash.hex()
 
 
+@exception_handler
 def lock_transfer(
     from_address: str,
     to_address: str,
@@ -109,6 +113,7 @@ def lock_transfer(
     return tx_hash.hex()
 
 
+@exception_handler
 def reward_transfer(to_address: str, amount: int, nonce: int):
     """
     보상을 전송하는 함수
@@ -125,6 +130,7 @@ def reward_transfer(to_address: str, amount: int, nonce: int):
     return act_transfer(from_address, to_address, amount, private_key_str, nonce)
 
 
+@exception_handler
 def level_reward_transfer(to_address: str, amount: int, nonce: int, lock_time: int):
     """
     레벨 보상을 전송하는 함수

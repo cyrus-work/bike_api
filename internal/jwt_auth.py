@@ -34,8 +34,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8000/users/login
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def authenticate_user(email: str, password: str):
-    logger.info(f"authenticate_user: {email}, {password}")
+def authenticate_user(email: str, password: str) -> bool | User:
+    """
+    사용자 인증 - 사용자 정보 확인
+
+    :param email: 사용자 이메일
+    :param password: 사용자 비밀번호
+    :return: 사용자 정보
+    """
+    logger.info(f"  -- authenticate_user: {email}, {password}")
     db = SessionLocal()
     user = get_user_by_email(db, email)
     if not user:
@@ -46,7 +53,13 @@ def authenticate_user(email: str, password: str):
 
 
 def get_active_auth_user(email: str, password: str):
-    logger.info(f"get_active_auth_user: {email}")
+    """
+    사용자 인증 - 활성화된 사용자
+
+    :param email: 사용자 이메일
+    :param password: 사용자 비밀번호
+    """
+    logger.info(f"  -- get_active_auth_user: {email}")
     db = SessionLocal()
     db_user = get_active_user_by_email(db, email)
     if not db_user:
@@ -57,7 +70,14 @@ def get_active_auth_user(email: str, password: str):
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    logger.info(f"create_access_token: {data}, {expires_delta}")
+    """
+    Access Token 생성
+
+    :param data: 사용자 정보
+    :param expires_delta: 만료 시간
+    :return: Access Token
+    """
+    logger.info(f"  -- create_access_token: {data}, {expires_delta}")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
@@ -70,7 +90,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
-    logger.info(f"create_refresh_token: {data}, {expires_delta}")
+    """
+    Refresh Token 생성
+
+    :param data: 사용자 정보
+    :param expires_delta: 만료 시간
+    :return: Refresh Token
+    """
+    logger.info(f"  -- create_refresh_token: {data}, {expires_delta}")
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
@@ -82,8 +109,15 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
-    logger.info(f"encoded_data_to_jwt: {data}")
+def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    데이터를 JWT로 인코딩
+
+    :param data: 사용자 정보
+    :param expires_delta: 만료 시간
+    :return: JWT
+    """
+    logger.info(f"  -- encoded_data_to_jwt: {data}")
     if expires_delta:
         expire = datetime.now() + expires_delta
     else:
@@ -93,16 +127,29 @@ def encoded_data_to_jwt(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def decode_data_from_jwt(token: str):
-    logger.info(f"decode_data_from_jwt: {token}")
+def decode_data_from_jwt(token: str) -> dict:
+    """
+    JWT에서 데이터 디코딩
+
+    :param token: JWT
+    :return: 디코딩된 데이터
+    """
+    logger.info(f"  -- decode_data_from_jwt: {token}")
     try:
         decoded_data = jwt.decode(token, DATA_SECRET_KEY, algorithms=["HS256"])
         return decoded_data
+
     except ExpiredSignatureError:
         raise JWTDataExpiredException()
 
 
-def get_email_from_jwt(token: str):
+def get_email_from_jwt(token: str) -> str:
+    """
+    JWT에서 이메일 가져오기
+
+    :param token: JWT
+    :return: 이메일
+    """
     payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
     email: str = payload.get("email")
     logger.info(f"get_email_from_jwt: {email}")
@@ -111,6 +158,12 @@ def get_email_from_jwt(token: str):
 
 @exception_handler
 def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authorization")):
+    """
+    JWT에서 이메일 가져오기
+
+    :param authorization: Authorization Header
+    :return: 이메일
+    """
     try:
         token = authorization.split()[1]
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
@@ -125,6 +178,12 @@ def get_email_from_jwt_depends(authorization: str = Header(..., alias="Authoriza
 
 @exception_handler
 def get_info_from_refresh_token(token: str):
+    """
+    Refresh Token에서 정보 가져오기
+
+    :param token: Refresh Token
+    :return: 정보
+    """
     payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
     logger.info(f"get_info_from_refresh_token: {payload}")
     return payload
@@ -134,6 +193,12 @@ def get_info_from_refresh_token(token: str):
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
+    """
+    현재 사용자 정보 가져오기
+
+    :param db: Session
+    :param token: Token 정보
+    """
     logger.info(f"  -- get_current_user start")
     try:
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
@@ -164,9 +229,14 @@ def get_current_user(
 
 
 @exception_handler
-def get_access_token_from_cookie(token: str):
-    logger.info(">>> get_access_token_from_cookie start")
-    db = SessionLocal()
+def get_access_token_from_cookie(db: Session, token: str = Header(None)):
+    """
+    쿠키에서 Access Token 가져오기
+
+    :param db: Session
+    :param token: Token 정보
+    """
+    logger.info("  -- get_access_token_from_cookie start")
 
     try:
         access_token_bytes = token.encode("utf-8")
@@ -177,13 +247,13 @@ def get_access_token_from_cookie(token: str):
             raise EmailNotExistException()
 
     except ExpiredSignatureError:
-        logger.error(f"get_access_token_from_cookie: {traceback.format_exc()}")
+        logger.error(f"  -- get_access_token_from_cookie: {traceback.format_exc()}")
         raise JWTDataExpiredException()
 
     user = get_active_user_by_email(db, email)
     if user is None:
         raise CredentialException()
-    db.close()
+
     return user
 
 
