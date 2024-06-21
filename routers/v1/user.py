@@ -75,7 +75,7 @@ async def post_login_user_api(
         email = user.email
 
         db_user = get_active_user_by_email(db, email)
-        logger.info(f"post_login_user_api: {db_user}")
+        logger.info(f"    post_login_user_api: {db_user}")
         if db_user is None:
             raise UserNotExistsException
 
@@ -85,7 +85,7 @@ async def post_login_user_api(
         token_msg = token_make_function(email)
 
         msg = {"code": 200, "content": token_msg}
-        logger.info(f"post_login_user_api msg: {msg}")
+        logger.info(f"    post_login_user_api msg: {msg}")
         return AccessRefreshTokenMsg(**token_msg)
 
     finally:
@@ -103,7 +103,7 @@ async def post_create_user_api(
     :param db: db session
     :return: UserCreateMsg 모델
     """
-    logger.info(f">>> post_create_user_api: {user}")
+    logger.info(f">>> post_create_user_api start: {user}")
 
     try:
         # 작성할 사용자 정보를 입력받는다.
@@ -117,7 +117,8 @@ async def post_create_user_api(
         agree3 = user.agreement3
 
         logger.info(
-            f"post_create_user_api: {name}, {email}, {password}, {checker}, {agree1}, {agree2}, {agree3}"
+            f"    post_create_user_api info: "
+            f"{name}, {email}, {password}, {checker}, {agree1}, {agree2}, {agree3}"
         )
 
         # 사용자 이메일로 정보를 조회한다.
@@ -151,7 +152,7 @@ async def post_create_user_api(
         db.merge(db_user)
         db.flush()
 
-        logger.info(f"post_create_user_api db_user: {db_user}")
+        logger.info(f"    post_create_user_api db_user: {db_user}")
 
         # 사용한 checker는 삭제한다.
         db.delete(db_user_checker)
@@ -186,7 +187,7 @@ async def post_user_email_send_api(
         email = data.email
 
         checker = generate_hash()
-        logger.info(f"post_user_email_send_api checker: {checker}")
+        logger.info(f"    post_user_email_send_api checker: {checker}")
 
         db_user = make_user(email=email, password=None, name=None, email_verified="N")
         db_user_exist = get_user_by_email(db, email)
@@ -195,14 +196,14 @@ async def post_user_email_send_api(
             if db_user_exist.status != 0:
                 raise UserExistsException
             else:
-                logger.info(f"post_user_email_send_api: delete user")
+                logger.info(f"    post_user_email_send_api: delete user")
                 db.delete(db_user_exist)
                 db.commit()
 
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        logger.info(f"post_user_email_send_api db_user: {db_user}")
+        logger.info(f"    post_user_email_send_api db_user: {db_user}")
 
         user_json = {
             "email": email,
@@ -211,12 +212,12 @@ async def post_user_email_send_api(
         }
 
         db_user = get_user_exist_by_email(db, email)
-        logger.info(f"post_user_email_send_api: {db_user}")
+        logger.info(f"    post_user_email_send_api: {db_user}")
 
         # 이전에 사용한 db_check를 삭제
         clean_checkers(db, email)
 
-        logger.info(f"post_user_email_send_api: new user")
+        logger.info(f"    post_user_email_send_api: new user")
         db_checkout = make_user_check(email=email, checker=checker)
         db.add(db_checkout)
         db.commit()
@@ -227,7 +228,7 @@ async def post_user_email_send_api(
 
         send_mail(mail_config, email, checker_msg)
 
-        logger.info(f"post_user_email_send_api db_check: {email}, {checker}")
+        logger.info(f"    post_user_email_send_api db_check: {email}, {checker}")
         return UserSendMsg(code=200, content="Send email", email=email, checker=checker)
 
     finally:
@@ -275,7 +276,7 @@ async def post_user_email_resend_api(
 
         send_mail(mail_config, email, checker_msg)
 
-        logger.info(f"post_user_email_resend_api db_check: {email}, {checker}")
+        logger.info(f"    post_user_email_resend_api db_check: {email}, {checker}")
         return UserSendMsg(
             code=200, content="Auth email send", email=email, checker=checker
         )
@@ -317,7 +318,7 @@ async def email_confirm_user_api(
             db_check.verified = "Y"
             db.merge(db_check)
             db.commit()
-            logger.info(f"email_confirm_user_api db_check: {db_check}")
+            logger.info(f"    email_confirm_user_api db_check: {db_check}")
 
             db_user = get_user_by_email(db, email)
             db_user.email_verified = "Y"
@@ -327,7 +328,7 @@ async def email_confirm_user_api(
             logger.info(f"email_confirm_user_api: {email} confirm success")
 
             msg = {"code": 200, "content": "Email confirm success"}
-            logger.info(f"email_confirm_user_api msg: {msg}")
+            logger.info(f"    email_confirm_user_api msg: {msg}")
             return HTMLResponse(content=html_ok_content, status_code=200)
 
         else:
@@ -358,7 +359,7 @@ async def email_confirm_check_user_api(
 
         if db_user.email_verified == "Y":
             msg = {"code": 200, "content": "Email confirmed"}
-            logger.info(f"email_confirm_check_user_api msg: {msg}")
+            logger.info(f"    email_confirm_check_user_api msg: {msg}")
             return JSONResponse(status_code=200, content=msg)
         else:
             raise EmailNotConfirmException
@@ -388,7 +389,7 @@ async def post_user_email_auth_confirm_api(
 
         if db_check.verified == "Y":
             msg = {"code": 200, "content": "Email confirmed"}
-            logger.info(f"post_user_email_auth_confirm_api msg: {msg}")
+            logger.info(f"    post_user_email_auth_confirm_api msg: {msg}")
             return JSONResponse(status_code=200, content=msg)
         else:
             raise EmailNotConfirmException
@@ -439,7 +440,7 @@ async def update_user_by_email_api(
         db.merge(db_user)
         db.commit()
 
-        logger.info(f"update_user_by_email_api: {email} update success")
+        logger.info(f"    update_user_by_email_api: {email} update success")
         return {"message": "update success"}
 
     finally:
@@ -453,10 +454,10 @@ async def read_users(db: SessionLocal = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh_token_api(
+async def post_refresh_token_api(
     db: SessionLocal = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    logger.info(f">>> refresh_token_api: {token}")
+    logger.info(f">>> post_refresh_token_api: {token}")
     try:
         info = get_info_from_refresh_token(token)
 
@@ -476,44 +477,44 @@ async def refresh_token_api(
         access_token = access_token_make_function(email)
 
         token_msg = {"access_token": access_token, "token_type": "bearer"}
-        logger.info(f"refresh_token_api: {token_msg}")
+        logger.info(f"    post_refresh_token_api: {token_msg}")
         return AccessTokenMsg(**token_msg)
 
     finally:
-        logger.info(f">>> refresh_token_api end")
+        logger.info(f">>> post_refresh_token_api end")
 
 
 # 리프레시 토큰 재발행 라우터
 @router.post(
     "/refresh_one",
 )
-async def refresh_refresh_token(user: User = Depends(get_current_user)):
+async def post_refresh_refresh_token_api(user: User = Depends(get_current_user)):
     try:
         db_user, db = user
 
         refresh_token_expires = timedelta(minutes=auth["refresh_token_expires"])
-        logger.info(f"refresh_refresh_token user: {db_user.email}")
+        logger.info(f"post_refresh_refresh_token_api user: {db_user.email}")
         refresh_token = create_refresh_token(
             data={"email": db_user.email, "refresh": True},
             expires_delta=refresh_token_expires,
         )
         msg = {"refresh_token": refresh_token, "token_type": "bearer"}
-        logger.info(f"refresh_refresh_token: {msg}")
+        logger.info(f"    post_refresh_refresh_token_api: {msg}")
         return JSONResponse(status_code=200, content=msg)
 
     finally:
-        logger.info(f">>> refresh_refresh_token end")
+        logger.info(f">>> post_refresh_refresh_token_api end")
 
 
 @router.get("/info")
-async def get_user_info_by_owner(user: User = Depends(get_current_user)):
+async def get_user_info_by_owner_api(user: User = Depends(get_current_user)):
     """
     사용자 정보 조회
 
     :param user: User 모델
     :return:
     """
-    logger.info(f">>> get_user_info_by_owner start")
+    logger.info(f">>> get_user_info_by_owner_api start")
 
     db_user, db = user
     try:
@@ -524,11 +525,11 @@ async def get_user_info_by_owner(user: User = Depends(get_current_user)):
         user_dict.pop("wid")
         user_dict.pop("wallet_created_at")
         user_dict.pop("wallet_updated_at")
-        logger.info(f"get_user_info_by_owner: {user_dict}")
+        logger.info(f"    get_user_info_by_owner_api: {user_dict}")
         return user_dict
 
     finally:
-        logger.info(f">>> get_user_info_by_owner end")
+        logger.info(f">>> get_user_info_by_owner_api end")
 
 
 @router.post("/pw_change")
@@ -559,7 +560,7 @@ async def post_user_pw_change_api(
         db.merge(db_user)
         db.commit()
 
-        logger.info(f"post_user_pw_change_api: {email} password change success")
+        logger.info(f"    post_user_pw_change_api: {email} password change success")
         return {"message": "password change success"}
 
     finally:
@@ -592,7 +593,7 @@ async def post_disable_user_by_jwt_api(
         db.merge(db_user)
         db.commit()
 
-        logger.info(f"post_disable_user_by_jwt_api: {email} disable success")
+        logger.info(f"    post_disable_user_by_jwt_api: {email} disable success")
         return {"message": "disable success"}
 
     finally:
