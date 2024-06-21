@@ -10,10 +10,13 @@ class WorkoutSummary(Base):
     email = Column(String(120))
     total_token_status_0 = Column(Float)
     total_point_status_0 = Column(Float)
+    total_duration_status_0 = Column(Integer)
     total_token_status_1 = Column(Float)
     total_point_status_1 = Column(Float)
+    total_duration_status_1 = Column(Integer)
     total_token = Column(Float)
     total_point = Column(Float)
+    total_duration = Column(Integer)
 
 
 @exception_handler

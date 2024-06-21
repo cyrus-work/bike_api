@@ -18,6 +18,7 @@ class PointOut(Base):
     :param updated_at: updated time
     :return: PointOut
     """
+
     __tablename__ = "point_out"
 
     pid = Column(String(64, collation="latin1_swedish_ci"), primary_key=True)
@@ -76,3 +77,11 @@ def make_point_out(
 
 def get_point_out_by_email(db, email):
     return db.query(PointOut).filter_by(email=email).all()
+
+
+def get_point_out_by_pid(db, pid, start_date, end_date):
+    db.query(PointOut).filter_by(
+        PointOut.owner_id == pid,
+        PointOut.created_at >= start_date,
+        PointOut.created_at <= end_date,
+    ).all()

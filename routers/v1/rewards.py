@@ -6,15 +6,18 @@ from internal.exceptions import RewardWorkoutNotExistsException
 from internal.jwt_auth import get_current_user
 from internal.log import logger
 from messages.wallets import WalletTxnGetMonthReq
-from models.point_out import make_point_out
-from models.transaction_out import make_transaction_out, TransactionOut
+from models.owner_token_point import get_workout_summary_by_email
+from models.point_out import make_point_out, get_point_out_by_pid
+from models.transaction_out import (
+    make_transaction_out,
+    get_txns_by_owner_id,
+)
 from models.user import User
 from models.wallet import get_wallet_by_owner_id
 from models.workout import (
     get_workout_list_not_calculated_coin_by_user_id,
     get_workout_list_not_calculated_point_by_user_id,
 )
-from models.workout_summary import get_summary_by_email
 
 router = APIRouter()
 
@@ -34,7 +37,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         db_wallet = get_wallet_by_owner_id(db, db_user.uid)
 
         db_workouts = get_workout_list_not_calculated_coin_by_user_id(db, db_user.uid)
-        logger.info(f"post_request_rewards_api db_workouts: {db_workouts}")
+        logger.info(f"    post_request_rewards_api db_workouts: {db_workouts}")
 
         # 계산할 리워드가 없는 경우.
         if len(db_workouts) == 0:
@@ -56,6 +59,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         db.commit()
         db.refresh(txn)
 
+        logger.info(f"    post_request_rewards_api txn: {txn}")
         return txn
 
     finally:
@@ -77,7 +81,7 @@ async def post_request_point_rewards_api(user: User = Depends(get_current_user))
         db_wallet = get_wallet_by_owner_id(db, db_user.uid)
 
         db_workouts = get_workout_list_not_calculated_point_by_user_id(db, db_user.uid)
-        logger.info(f"post_request_point_rewards_api db_workouts: {db_workouts}")
+        logger.info(f"    post_request_point_rewards_api db_workouts: {db_workouts}")
 
         # 계산할 리워드가 없는 경우.
         if len(db_workouts) == 0:
@@ -99,6 +103,7 @@ async def post_request_point_rewards_api(user: User = Depends(get_current_user))
         db.commit()
         db.refresh(txn)
 
+        logger.info(f"    post_request_point_rewards_api txn: {txn}")
         return txn
 
     finally:
@@ -117,13 +122,32 @@ async def post_total_rewards_api(user: User = Depends(get_current_user)):
 
     try:
         db_user, db = user
-        logger.info(f"post_total_rewards_api db_user: {db_user}")
 
-        db_workout_summary = get_summary_by_email(db, db_user.email)
-        return db_workout_summary
+        db_workout_summary = get_workout_summary_by_email(db, db_user.email)
+        logger.info(
+            f"    post_total_rewards_api db_workout_summary: {db_workout_summary}"
+        )
+        return {
+            "email": db_user.email,
+            "point": db_workout_summary.total_point,
+            "token": db_workout_summary.total_token,
+            "duration": db_workout_summary.total_duration,
+        }
 
     finally:
         logger.info(f">>> post_total_rewards_api end")
+
+
+def make_start_end_data_month(month_str: str):
+    year, month = map(int, month_str.split("-"))
+
+    start_date = datetime(year, month, 1)
+    if month == 12:
+        end_date = datetime(year + 1, 1, 1)
+    else:
+        end_date = datetime(year, month + 1, 1)
+
+    return start_date, end_date
 
 
 @router.post("/point_txn_list_by_owner_id")
@@ -140,29 +164,11 @@ async def post_txn_list_by_owner_id_api(
     try:
         db_user, db = user
 
-        if req.month is None:
-            month_str = datetime.now().strftime("%Y-%m")
-        else:
-            month_str = req.month
-        year, month = map(int, month_str.split("-"))
+        start_date, end_date = make_start_end_data_month(req.month)
 
-        start_date = datetime(year, month, 1)
-        if month == 12:
-            end_date = datetime(year + 1, 1, 1)
-        else:
-            end_date = datetime(year, month + 1, 1)
+        db_txns = get_point_out_by_pid(db, db_user.uid, start_date, end_date)
 
-        db_txns = (
-            db.query(TransactionOut)
-            .filter(
-                TransactionOut.owner_id == db_user.uid,
-                TransactionOut.operating_at >= start_date,
-                TransactionOut.operating_at < end_date,
-            )
-            .all()
-        )
-        logger.info(f"post_txn_list_by_owner_id_api db_txns: {db_txns}")
-
+        logger.info(f"    post_txn_list_by_owner_id_api db_txns: {db_txns}")
         return db_txns
 
     finally:
@@ -176,6 +182,8 @@ async def post_txn_list_by_owner_id_and_coint_api(
     """
     Get all rewards
 
+    :param req: WalletTxnGetMonthReq
+    :param user: User
     :return:
     """
     logger.info(f">>> post_txn_list_by_owner_id_and_coint_api start")
@@ -183,29 +191,11 @@ async def post_txn_list_by_owner_id_and_coint_api(
     try:
         db_user, db = user
 
-        if req.month is None:
-            month_str = datetime.now().strftime("%Y-%m")
-        else:
-            month_str = req.month
-        year, month = map(int, month_str.split("-"))
+        start_date, end_date = make_start_end_data_month(req.month)
 
-        start_date = datetime(year, month, 1)
-        if month == 12:
-            end_date = datetime(year + 1, 1, 1)
-        else:
-            end_date = datetime(year, month + 1, 1)
+        db_txns = get_txns_by_owner_id(db, db_user.uid, start_date, end_date)
 
-        db_txns = (
-            db.query(TransactionOut)
-            .filter(
-                TransactionOut.owner_id == db_user.uid,
-                TransactionOut.operating_at >= start_date,
-                TransactionOut.operating_at < end_date,
-            )
-            .all()
-        )
-        logger.info(f"post_txn_list_by_owner_id_and_coint_api db_txns: {db_txns}")
-
+        logger.info(f"    post_txn_list_by_owner_id_and_coint_api db_txns: {db_txns}")
         return db_txns
 
     finally:

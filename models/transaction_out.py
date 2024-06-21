@@ -111,3 +111,11 @@ def get_txn_out_by_owner_id(db, owner_id) -> list[TransactionOut]:
 
 def get_txn_out_by_wallet(db, wallet):
     return db.query(TransactionOut).filter_by(wallet=wallet).all()
+
+
+def get_txns_by_owner_id(db, owner_id, start_date, end_date):
+    db.query(TransactionOut).filter(
+        TransactionOut.owner_id == owner_id,
+        TransactionOut.operating_at >= start_date,
+        TransactionOut.operating_at < end_date,
+    ).all()
