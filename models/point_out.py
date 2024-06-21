@@ -80,7 +80,7 @@ def get_point_out_by_email(db, email):
 
 
 def get_point_out_by_pid(db, pid, start_date, end_date):
-    db.query(PointOut).filter_by(
+    db.query(PointOut).filter(
         PointOut.owner_id == pid,
         PointOut.created_at >= start_date,
         PointOut.created_at <= end_date,
