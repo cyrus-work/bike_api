@@ -12,24 +12,6 @@ from models.bike import (
 router = APIRouter()
 
 
-@router.get("/get_all")
-async def get_bikes_all_api(db: SessionLocal = Depends(get_db)):
-    """
-    Get all bikes
-
-    :return:
-    """
-    logger.info(f">>> get_bikes_all_api start")
-
-    try:
-        db_bikes = get_bikes_all(db)
-        logger.info(f"get_bikes_all_api db_bikes: {db_bikes}")
-        return db_bikes
-
-    finally:
-        logger.info(f">>> get_bikes_all_api end")
-
-
 @router.post("/check")
 async def post_check_bike_api(bike: BikeGetRequest, db: SessionLocal = Depends(get_db)):
     """
@@ -43,7 +25,7 @@ async def post_check_bike_api(bike: BikeGetRequest, db: SessionLocal = Depends(g
 
     try:
         db_bike = get_bike_by_bike_no(db, bike.serial)
-        logger.info(f"post_check_bike_api db_bike: {db_bike}")
+        logger.info(f"    post_check_bike_api db_bike: {db_bike}")
 
         if db_bike is None:
             raise BikeNotExistsException
