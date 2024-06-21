@@ -121,6 +121,19 @@ class WorkoutCreateMsg(BaseModel):
         }
 
 
+class WorkoutGetAllRequest(BaseModel):
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
 class WorkoutGetTypeRequest(BaseModel):
     ptype: int
     offset: Optional[int] = 0

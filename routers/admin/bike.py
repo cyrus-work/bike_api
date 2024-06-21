@@ -72,6 +72,31 @@ async def get_bikes_all_api(req: BikeListGetReq, user=Depends(admin_required)):
         logger.info(f">>> get_bikes_all_api end")
 
 
+@router.post("/info")
+async def post_bike_info_api(bike: BikeGetRequest, user=Depends(admin_required)):
+    """
+    Get bike info
+
+    :param bike:
+    :param user:
+    :return:
+    """
+    logger.info(f">>> post_bike_info_api start: {bike}")
+
+    try:
+        admin, db = user
+        serial = bike.serial
+
+        db_bike = get_bike_by_bike_no(db, serial)
+        if db_bike is None:
+            raise BikeNotExistsException
+
+        return db_bike
+
+    finally:
+        logger.info(f">>> post_bike_info_api end")
+
+
 @router.post("/create")
 async def post_create_bike_api(bike: BikeCreateRequest, user=Depends(admin_required)):
     """
@@ -124,6 +149,11 @@ async def post_delete_bike_api(bike: BikeGetRequest, user=Depends(admin_required
 
     finally:
         logger.info(f">>> post_delete_bike_api end")
+
+
+"""
+대량 업로드
+"""
 
 
 @router.post("/bulk_create")

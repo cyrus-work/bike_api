@@ -6,7 +6,7 @@ from internal.log import logger
 from messages.workout import (
     WorkoutGetTypeRequest,
     WorkoutGetSearchRequest,
-    WorkoutGetUserRequest,
+    WorkoutGetUserRequest, WorkoutGetAllRequest,
 )
 from models.user_workout import (
     get_user_workout_view,
@@ -20,18 +20,22 @@ from models.user_workout import (
 router = APIRouter()
 
 
-@router.get("/list")
-async def get_workout_all(user=Depends(admin_required)):
+@router.post("/list")
+async def post_workout_all(req: WorkoutGetAllRequest, user=Depends(admin_required)):
     """
     Get all workouts
 
     :return:
     """
-    logger.info(f">>> get_workout_all start")
+    logger.info(f">>> post_workout_all start")
 
-    db_user, db = user
     try:
-        db_workouts = get_user_workout_view(db)
+        db_user, db = user
+
+        offset = req.offset
+        limit = req.limit
+
+        db_workouts = get_user_workout_view(db, offset, limit)
         db_count = get_count_user_workout_view(db)
         logger.info(f"get_workout_all db_workouts: {db_workouts, db_count}")
         return {"count": db_count, "data": db_workouts}
