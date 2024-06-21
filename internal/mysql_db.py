@@ -21,9 +21,9 @@ Base_ex = declarative_base()
 
 def get_db():
     db = SessionLocal()
-    logger.info(f"get_db: db = SessionLocal()")
+    logger.info(f"=== get_db: db = SessionLocal()")
     try:
         yield db
     finally:
-        logger.info(f"get_db: db.close()")
+        logger.info(f"=== get_db: db.close()")
         db.close()

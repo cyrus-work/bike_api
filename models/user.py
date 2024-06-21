@@ -96,6 +96,11 @@ def get_user_by_email(db: SessionLocal, email: str) -> User:
 
 
 @exception_handler
+def get_users_like_email(db: SessionLocal, email: str):
+    return db.query(User).filter(User.email.like(f"%{email}%")).all()
+
+
+@exception_handler
 def get_user_exist_by_email(db: SessionLocal, email: str):
     """
     email로 사용자가 존재하는지 확인한다.

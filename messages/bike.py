@@ -65,8 +65,15 @@ Admin messages
 
 
 class BikeListGetReq(BaseModel):
-    offset: int = 0
-    limit: int = 50
+    """
+    Bike list get model
+
+    offset: offset
+    limit: limit
+    """
+
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
         schema_extra = {

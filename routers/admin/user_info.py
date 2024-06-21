@@ -10,7 +10,7 @@ from messages.user import (
     UserListGetReq,
 )
 from models.owner_token_point import get_workout_summary_by_owner_id
-from models.user import get_user_by_email
+from models.user import get_user_by_email, get_users_like_email
 from models.user_wallet import (
     get_user_wallets,
     get_user_info_by_email_verified,
@@ -131,24 +131,47 @@ async def post_get_user_info_api(req: UserEmailRequest, user=Depends(admin_requi
 
         db_user_info = get_user_wallets_by_email(db, email)
         db_workout_summary = get_workout_summary_by_owner_id(db, db_user_info.uid)
-
-        if isinstance(db_user_info, dict):
-            logger.info(f"    post_get_user_info_api dict: {db_user_info}")
-            db_user_info["token"] = db_workout_summary.total_token_status_0
-            db_user_info["point"] = db_workout_summary.total_point_status_0
-        else:
-            logger.info(f"    post_get_user_info_api ORM: {db_user_info}")
-            # db_user_info가 ORM 모델 인스턴스인 경우 딕셔너리로 변환
-            db_user_info_dict = db_user_info.__dict__
-            db_user_info_dict["token"] = db_workout_summary.total_token_status_0
-            db_user_info_dict["point"] = db_workout_summary.total_point_status_0
-            db_user_info = db_user_info_dict
+        db_user_info.token = db_workout_summary.total_token_status_0
+        db_user_info.point = db_workout_summary.total_point_status_0
 
         logger.info(f"    post_get_user_info_api: {db_user_info}")
         return db_user_info
 
     finally:
         logger.info(f">>> post_get_user_info_api end")
+
+
+@router.post("/info_match")
+async def post_get_user_info_match_api(
+    req: UserEmailRequest, user=Depends(admin_required)
+):
+    """
+    사용자 정보 조회 by search
+
+    :param req: UserEmailRequest 모델
+    :param user: admin_required
+    :return:
+    """
+    logger.info(f">>> post_get_user_info_match_api start")
+
+    try:
+        db_user, db = user
+        email = req.email
+
+        db_user_info = get_users_like_email(db, email)
+
+        result = []
+        for item in db_user_info:
+            db_workout_summary = get_workout_summary_by_owner_id(db, item.uid)
+            item.token = db_workout_summary.total_token_status_0
+            item.point = db_workout_summary.total_point_status_0
+            result.append(item)
+
+        logger.info(f"    post_get_user_info_match_api: {result}")
+        return result
+
+    finally:
+        logger.info(f">>> post_get_user_info_match_api end")
 
 
 @router.post("/delete")

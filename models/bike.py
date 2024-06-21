@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, String, DateTime
 
 from internal.mysql_db import Base, SessionLocal
 from internal.utils import generate_hash, exception_handler
@@ -83,6 +83,18 @@ def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
     :return: Bike
     """
     return db.query(Bike).filter_by(bike_no=bike_no).first()
+
+
+@exception_handler
+def get_bike_by_bike_no_like(db: SessionLocal, bike_no: str) -> list[Bike]:
+    """
+    Get bike by bike_no like
+
+    :param db: database session
+    :param bike_no: bike_no value
+    :return: list[Bike]
+    """
+    return db.query(Bike).filter(Bike.bike_no.like(f"%{bike_no}%")).all()
 
 
 @exception_handler

@@ -16,7 +16,8 @@ from internal.exceptions_handlers import (
     http_exception_handler,
     validation_exception_handler,
     integrity_error_handler,
-    unmapped_instance_error_handler, jwt_error_handler,
+    unmapped_instance_error_handler,
+    jwt_error_handler,
 )
 from internal.log import logger
 from internal.mysql_db import Base, engine
@@ -117,7 +118,7 @@ def start_scheduler():
             schedule_token_checker,
             "cron",
             hour="*/1",
-            minute="*/10",
+            minute="*/30",
             id=f"scheduled_checker_{current_process().name}",
         )
         logger.info(f"Current registered jobs: {get_registered_jobs()}")

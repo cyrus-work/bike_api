@@ -39,6 +39,7 @@ from models.bike import (
     make_bike,
     get_bike_by_bike_no,
     get_bikes_count_all,
+    get_bike_by_bike_no_like,
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -96,6 +97,32 @@ async def post_bike_info_api(bike: BikeGetRequest, user=Depends(admin_required))
 
     finally:
         logger.info(f">>> post_bike_info_api end")
+
+
+@router.post("/info_match")
+async def post_bike_info_match_api(bike: BikeGetRequest, user=Depends(admin_required)):
+    """
+    Get bike info by search
+
+    :param bike:
+    :param user:
+    :return:
+    """
+    logger.info(f">>> post_bike_info_match_api start: {bike}")
+
+    try:
+        admin, db = user
+        serial = bike.serial
+
+        db_bike = get_bike_by_bike_no_like(db, serial)
+
+        logger.info(f"    post_bike_info_match_api db_bike: {db_bike}")
+        if db_bike is None:
+            db_bike = []
+        return db_bike
+
+    finally:
+        logger.info(f">>> post_bike_info_match_api end")
 
 
 @router.post("/create")
@@ -213,9 +240,7 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
 
 
 @router.get("/upload_form")
-def form(
-    req: Request, access_token: str = Cookie(None)
-):  # session_token 매개변수 추가
+def form(req: Request, access_token: str = Cookie(None)):  # session_token 매개변수 추가
     """
     file upload form page
 
