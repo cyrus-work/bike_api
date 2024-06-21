@@ -26,7 +26,7 @@ async def get_wallets_api(user=Depends(admin_required)):
             for wallet in db_wallets
         ]
 
-        logger.info(f"get_wallets_api db_wallets: {db_wallets_filtered}")
+        logger.info(f"    get_wallets_api db_wallets: {db_wallets_filtered}")
         return db_wallets_filtered
 
     finally:
@@ -47,7 +47,7 @@ async def post_txn_by_email_api(req: TxnOutGetRequest, user=Depends(admin_requir
 
         db_txns = get_txn_out_by_owner_id(db, owner_id=target_user.uid)
 
-        logger.info(f"post_txn_by_wallet db_txns: {db_txns}")
+        logger.info(f"    post_txn_by_wallet db_txns: {db_txns}")
         return db_txns
 
     finally:

@@ -6,7 +6,8 @@ from internal.log import logger
 from messages.workout import (
     WorkoutGetTypeRequest,
     WorkoutGetSearchRequest,
-    WorkoutGetUserRequest, WorkoutGetAllRequest,
+    WorkoutGetUserRequest,
+    WorkoutGetAllRequest,
 )
 from models.user_workout import (
     get_user_workout_view,
@@ -14,7 +15,8 @@ from models.user_workout import (
     get_user_workout_view_by_email_and_ptype,
     get_user_workout_view_by_email_and_date,
     get_count_of_workout_by_type,
-    get_count_user_workout_view_by_email_and_ptype, get_count_user_workout_view,
+    get_count_user_workout_view_by_email_and_ptype,
+    get_count_user_workout_view,
 )
 
 router = APIRouter()
@@ -37,7 +39,7 @@ async def post_workout_all(req: WorkoutGetAllRequest, user=Depends(admin_require
 
         db_workouts = get_user_workout_view(db, offset, limit)
         db_count = get_count_user_workout_view(db)
-        logger.info(f"get_workout_all db_workouts: {db_workouts, db_count}")
+        logger.info(f"    get_workout_all db_workouts: {db_workouts, db_count}")
         return {"count": db_count, "data": db_workouts}
 
     finally:
@@ -61,7 +63,7 @@ async def get_workout_by_type(req: WorkoutGetTypeRequest, user=Depends(admin_req
 
         db_workouts = get_user_workout_view_by_type(db, req.ptype, offset, limit)
         db_counts = get_count_of_workout_by_type(db, req.ptype)
-        logger.info(f"get_workout_by_type db_workouts: {db_workouts}, {db_counts}")
+        logger.info(f"    get_workout_by_type db_workouts: {db_workouts}, {db_counts}")
         return {"count": db_counts, "data": db_workouts}
 
     finally:
@@ -89,7 +91,7 @@ async def get_workout_by_user(req: WorkoutGetUserRequest, user=Depends(admin_req
             db, email, ptype, offset, limit
         )
         db_counts = get_count_user_workout_view_by_email_and_ptype(db, email, ptype)
-        logger.info(f"get_workout_by_user db_workouts: {db_workouts}, {db_counts}")
+        logger.info(f"    get_workout_by_user db_workouts: {db_workouts}, {db_counts}")
         return {"count": db_counts, "data": db_workouts}
 
     finally:
@@ -119,13 +121,14 @@ async def post_workout_by_user_and_date_api(
         end_date = req.end_date if req.end_date is not None else start_date
 
         logger.info(
-            f"post_workout_by_user_and_date_api {ptype}, {email}, {start_date}, {end_date}, {offset}, {limit}"
+            f"    post_workout_by_user_and_date_api infos: "
+            f"{ptype}, {email}, {start_date}, {end_date}, {offset}, {limit}"
         )
 
         db_workouts = get_user_workout_view_by_email_and_date(
             db, email, start_date, end_date, ptype, offset, limit
         )
-        logger.info(f"post_workout_by_user_and_date_api db_workouts: {db_workouts}")
+        logger.info(f"    post_workout_by_user_and_date_api db_workouts: {db_workouts}")
         return db_workouts
 
     finally:
