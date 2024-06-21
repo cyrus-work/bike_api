@@ -180,6 +180,8 @@ async def post_user_email_send_api(
     """
     logger.info(f">>> post_user_email_send_api start: {data}")
 
+    # return 0
+
     try:
         email = data.email
 

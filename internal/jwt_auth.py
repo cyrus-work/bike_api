@@ -4,10 +4,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import jwt
-from fastapi import Header, Depends, Cookie
+from fastapi import Header, Depends
 from fastapi.requests import Request
 from fastapi.security import OAuth2PasswordBearer
-from jwt import ExpiredSignatureError
+from jwt import ExpiredSignatureError, DecodeError, PyJWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
@@ -134,25 +134,33 @@ def get_info_from_refresh_token(token: str):
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
-    logger.info(f">>> get_current_user start")
+    logger.info(f"  -- get_current_user start")
     try:
         payload = jwt.decode(token, auth["secret"], algorithms=["HS256"])
         email: str = payload.get("email")
         if email is None:
             raise EmailNotExistException()
 
+        user = get_active_user_by_email(db, email)
+        if user is None:
+            logger.error(f"  -- get_current_user: {traceback.format_exc()}")
+            raise CredentialException()
+        return user, db
+
     except ExpiredSignatureError:
-        logger.error(f"get_current_user: {traceback.format_exc()}")
+        logger.error(f"  -- get_current_user: {traceback.format_exc()}")
         raise JWTDataExpiredException()
 
-    except jwt.PyJWTError:
-        logger.error(f"get_current_user: {traceback.format_exc()}")
+    except DecodeError:
+        logger.error(f"  -- get_current_user: {traceback.format_exc()}")
         raise JWTErrorsException()
 
-    user = get_active_user_by_email(db, email)
-    if user is None:
-        raise CredentialException()
-    return user, db
+    except PyJWTError:
+        logger.error(f"  -- get_current_user: {traceback.format_exc()}")
+        raise JWTErrorsException()
+
+    finally:
+        logger.info(f"  -- get_current_user end")
 
 
 @exception_handler
@@ -179,8 +187,9 @@ def get_access_token_from_cookie(token: str):
     return user
 
 
+@exception_handler
 def admin_required(current_user: User = Depends(get_current_user)):
-    logger.info(f">>> admin_required start: {current_user}")
+    logger.info(f"  -- admin_required start: {current_user}")
     user, db = current_user
     if user.level != 9:
         raise AdminRequiredException()

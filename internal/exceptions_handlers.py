@@ -19,7 +19,7 @@ def db_clean():
 
 
 async def custom_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logger.error(f"Exception: {exc}")
+    logger.error(f" == Exception: {exc}")
     exc_type = type(exc)
     if exc_type in exception_handlers:
         status_code, error_code, detail = exception_handlers[exc_type]
@@ -43,7 +43,7 @@ async def http_exception_handler(request: Request, exc: Exception) -> JSONRespon
 
 
 async def validation_exception_handler(
-    request: Request, exc: Exception
+        request: Request, exc: Exception
 ) -> JSONResponse:
     logger.error(f"RequestValidationError: {traceback.format_exc()}")
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
@@ -57,7 +57,12 @@ async def integrity_error_handler(request: Request, exc: Exception) -> JSONRespo
 
 
 async def unmapped_instance_error_handler(
-    request: Request, exc: Exception
+        request: Request, exc: Exception
 ) -> JSONResponse:
     logger.error(f"UnmappedInstanceError: {traceback.format_exc()}")
     return JSONResponse(status_code=500, content={"detail": f"{exc.__str__()}"})
+
+
+async def jwt_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(f"JWTError: {traceback.format_exc()}")
+    return JSONResponse(status_code=401, content={"detail": "Invalid token"})

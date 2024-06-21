@@ -5,6 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError, HTTPException
 from filelock import FileLock
+from jwt import ExpiredSignatureError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
@@ -15,7 +16,7 @@ from internal.exceptions_handlers import (
     http_exception_handler,
     validation_exception_handler,
     integrity_error_handler,
-    unmapped_instance_error_handler,
+    unmapped_instance_error_handler, jwt_error_handler,
 )
 from internal.log import logger
 from internal.mysql_db import Base, engine
@@ -42,6 +43,7 @@ app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)
 app.add_exception_handler(UnmappedInstanceError, unmapped_instance_error_handler)
+app.add_exception_handler(ExpiredSignatureError, jwt_error_handler)
 app.add_exception_handler(Exception, custom_exception_handler)
 for exc_type in exception_handlers:
     app.add_exception_handler(exc_type, custom_exception_handler)
@@ -114,7 +116,7 @@ def start_scheduler():
             schedule_token_checker,
             "cron",
             hour="*/1",
-            minute="*/1",
+            minute="*/10",
             id=f"scheduled_checker_{current_process().name}",
         )
         logger.info(f"Current registered jobs: {get_registered_jobs()}")

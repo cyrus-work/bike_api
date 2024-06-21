@@ -312,5 +312,3 @@ async def get_workout_by_date_and_owner_id_api(
 
     finally:
         logger.info(f">>> get_workout_by_date_and_owner_id_api end")
-
-

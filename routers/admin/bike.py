@@ -140,6 +140,14 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
         contents = await file.read()
         data = BytesIO(contents)
         df = pd.read_excel(data)
+        df = df.applymap(
+            lambda x: (
+                x.encode("latin1", errors="ignore").decode("latin1")
+                if isinstance(x, str)
+                else x
+            )
+        )
+
         logger.info(f"df: {df}")
         for index, row in df.iterrows():
             serial = row["serial_no"]
@@ -147,6 +155,7 @@ async def upload_file(file: UploadFile = File(...), access_token: str = Cookie(N
             board_version = row["board_version"]
             db_bike = make_bike(serial, cpu_version, board_version)
             db.add(db_bike)
+            db.flush()
 
         db.commit()
         return {"code": 200, "content": "success"}
