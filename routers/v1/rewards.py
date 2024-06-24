@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from internal.exceptions import RewardWorkoutNotExistsException
 from internal.jwt_auth import get_current_user
 from internal.log import logger
+from internal.utils import make_start_end_data_month
 from messages.wallets import WalletTxnGetMonthReq
 from models.owner_token_point import get_workout_summary_by_email
 from models.point_out import make_point_out, get_point_out_by_pid
@@ -135,18 +136,6 @@ async def post_total_rewards_api(user: User = Depends(get_current_user)):
 
     finally:
         logger.info(f">>> post_total_rewards_api end")
-
-
-def make_start_end_data_month(month_str: str):
-    year, month = map(int, month_str.split("-"))
-
-    start_date = datetime(year, month, 1)
-    if month == 12:
-        end_date = datetime(year + 1, 1, 1)
-    else:
-        end_date = datetime(year, month + 1, 1)
-
-    return start_date, end_date
 
 
 @router.post("/point_txn_list_by_owner_id")
