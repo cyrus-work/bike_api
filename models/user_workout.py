@@ -119,7 +119,26 @@ def get_count_user_workout_view_by_email_and_ptype(
 
 
 @exception_handler
-def get_user_workout_view_by_email_and_date(
+def get_user_workout_view_by_email(
+    db: SessionLocal, email: str, offset: int = 0, limit: int = 50
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter_by(user_email=email)
+        .order_by(UserWorkoutView.workout_date.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_count_user_workout_view_by_email(db: SessionLocal, email: str):
+    return db.query(UserWorkoutView).filter_by(user_email=email).count()
+
+
+@exception_handler
+def get_user_workout_view_by_email_and_date_and_ptype(
     db: SessionLocal,
     email: str,
     start_date: str,
@@ -140,4 +159,65 @@ def get_user_workout_view_by_email_and_date(
         .offset(offset)
         .limit(limit)
         .all()
+    )
+
+
+@exception_handler
+def get_count_user_workout_view_by_email_and_date_and_ptype(
+    db: SessionLocal,
+    email: str,
+    start_date: str,
+    end_date: str,
+    ptype: int = 0,
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter(
+            UserWorkoutView.user_email == email,
+            UserWorkoutView.workout_date >= start_date,
+            UserWorkoutView.workout_date <= end_date,
+            UserWorkoutView.workout_type == ptype,
+        )
+        .count()
+    )
+
+
+@exception_handler
+def get_user_workout_view_by_email_and_date(
+    db: SessionLocal,
+    email: str,
+    start_date: str,
+    end_date: str,
+    offset: int = 0,
+    limit: int = 50,
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter(
+            UserWorkoutView.user_email == email,
+            UserWorkoutView.workout_date >= start_date,
+            UserWorkoutView.workout_date <= end_date,
+        )
+        .order_by(UserWorkoutView.workout_date.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_count_user_workout_view_by_email_and_date(
+    db: SessionLocal,
+    email: str,
+    start_date: str,
+    end_date: str,
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter(
+            UserWorkoutView.user_email == email,
+            UserWorkoutView.workout_date >= start_date,
+            UserWorkoutView.workout_date <= end_date,
+        )
+        .count()
     )

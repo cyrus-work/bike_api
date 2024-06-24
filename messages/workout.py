@@ -114,11 +114,7 @@ class WorkoutGetMonthTestRequest(BaseModel):
     email: str
 
     class Config:
-        schema_extra = {
-            "example": {
-                "email": "test@exam.com"
-            }
-        }
+        schema_extra = {"example": {"email": "test@exam.com"}}
 
 
 class WorkoutCreateMsg(BaseModel):
@@ -161,7 +157,7 @@ class WorkoutGetTypeRequest(BaseModel):
 
 
 class WorkoutGetUserRequest(BaseModel):
-    ptype: int
+    ptype: Optional[int] = None
     email: Optional[str] = None
     offset: Optional[int] = 0
     limit: Optional[int] = 50
@@ -178,7 +174,7 @@ class WorkoutGetUserRequest(BaseModel):
 
 
 class WorkoutGetSearchRequest(BaseModel):
-    ptype: int
+    ptype: Optional[int] = None
     email: str
     start_date: str = None
     end_date: Optional[str] = None

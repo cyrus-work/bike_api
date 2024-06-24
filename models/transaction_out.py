@@ -108,7 +108,7 @@ def get_txn_out_by_status_not_clear(db):
 
 
 @exception_handler
-def get_txn_out_by_owner_id(db, owner_id) -> list[TransactionOut]:
+def get_txn_out_by_owner_id(db, owner_id, offset=0, limit=50) -> list:
     return db.query(TransactionOut).filter_by(owner_id=owner_id).all()
 
 
@@ -124,3 +124,29 @@ def get_txns_by_owner_id(db, owner_id, start_date, end_date):
         TransactionOut.operating_at >= start_date,
         TransactionOut.operating_at < end_date,
     ).all()
+
+
+@exception_handler
+def get_txns_all(db, offset=0, limit=50):
+    return (
+        db.query(TransactionOut)
+        .order_by(TransactionOut.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_txn_out_by_date(db, start_date, end_date, offset=0, limit=50):
+    return (
+        db.query(TransactionOut)
+        .filter(
+            TransactionOut.operating_at >= start_date,
+            TransactionOut.operating_at < end_date,
+        )
+        .order_by(TransactionOut.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )

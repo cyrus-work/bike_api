@@ -2,8 +2,12 @@ from fastapi import APIRouter, Depends
 
 from internal.jwt_auth import admin_required
 from internal.log import logger
-from messages.transaction_out import TxnOutGetRequest
-from models.transaction_out import get_txn_out_by_owner_id
+from messages.transaction_out import TxnOutGetRequest, TxnOutGetReq
+from models.transaction_out import (
+    get_txn_out_by_owner_id,
+    get_txns_all,
+    get_txn_out_by_date,
+)
 from models.user import get_user_by_email
 from models.wallet import get_wallets
 
@@ -42,13 +46,60 @@ async def post_txn_by_email_api(req: TxnOutGetRequest, user=Depends(admin_requir
     db_user, db = user
     try:
         email = req.email
+        offset = req.offset
+        limit = req.limit
 
         target_user = get_user_by_email(db, email)
 
-        db_txns = get_txn_out_by_owner_id(db, owner_id=target_user.uid)
+        db_txns = get_txn_out_by_owner_id(
+            db, owner_id=target_user.uid, offset=offset, limit=limit
+        )
 
         logger.info(f"    post_txn_by_wallet db_txns: {db_txns}")
         return db_txns
 
     finally:
         logger.info(f">>> post_txn_by_wallet end")
+
+
+@router.post("/txn_by_date")
+async def post_txn_by_date_api(req: TxnOutGetReq, user=Depends(admin_required)):
+    """
+    Get all transactions by date
+    """
+    logger.info(f">>> post_txn_by_date_api start")
+    try:
+        db_user, db = user
+
+        start_date = req.start_date
+        end_date = req.end_date
+        offset = req.offset
+        limit = req.limit
+
+        db_txns = get_txn_out_by_date(db, start_date, end_date, offset, limit)
+
+        logger.info(f"    post_txn_by_date_api db_txns: {db_txns}")
+        return db_txns
+
+    finally:
+        logger.info(f">>> post_txn_by_date_api end")
+
+
+@router.post("/txn_all")
+async def post_txn_all_api(req: TxnOutGetReq, user=Depends(admin_required)):
+    """
+    Get all transactions
+    """
+    logger.info(f">>> post_txn_all_api start")
+    db_user, db = user
+    try:
+        offset = req.offset
+        limit = req.limit
+
+        db_txns = get_txns_all(db, offset=offset, limit=limit)
+
+        logger.info(f"    post_txn_all_api db_txns: {db_txns}")
+        return db_txns
+
+    finally:
+        logger.info(f">>> post_txn_all_api end")

@@ -9,8 +9,16 @@ from messages.user import (
     UserSearchWalletRequest,
     UserListGetReq,
 )
+from models.UserWithWorkoutAndWalletSummary import (
+    get_user_with_workout_wallet_summary_like_email,
+    get_count_user_with_workout_summary_wallet_like_email,
+)
 from models.owner_token_point import get_workout_summary_by_owner_id
-from models.user import get_user_by_email, get_users_like_email
+from models.user import (
+    get_user_by_email,
+    get_users_like_email,
+    get_count_users_like_email,
+)
 from models.user_wallet import (
     get_user_wallets,
     get_user_info_by_email_verified,
@@ -159,6 +167,7 @@ async def post_get_user_info_match_api(
         email = req.email
 
         db_user_info = get_users_like_email(db, email)
+        db_count = get_count_users_like_email(db, email)
 
         result = []
         for item in db_user_info:
@@ -168,10 +177,40 @@ async def post_get_user_info_match_api(
             result.append(item)
 
         logger.info(f"    post_get_user_info_match_api: {result}")
-        return result
+        return {"count": db_count, "data": result}
 
     finally:
         logger.info(f">>> post_get_user_info_match_api end")
+
+
+@router.post("/info_by_email")
+async def post_info_by_email_api(req: UserEmailRequest, user=Depends(admin_required)):
+    """
+    사용자 정보 조회 by email
+
+    :param req: UserEmailRequest 모델
+    :param user: admin_required
+    :return:
+    """
+    logger.info(f">>> post_info_by_email_api start")
+
+    try:
+        db_user, db = user
+
+        email = req.email
+        offset = req.offset
+        limit = req.limit
+
+        db_user_info = get_user_with_workout_wallet_summary_like_email(
+            db, email, offset, limit
+        )
+        db_count = get_count_user_with_workout_summary_wallet_like_email(db, email)
+
+        logger.info(f"    post_info_by_email_api: {db_user_info}")
+        return {"count": db_count, "data": db_user_info}
+
+    finally:
+        logger.info(f">>> post_info_by_email_api end")
 
 
 @router.post("/delete")

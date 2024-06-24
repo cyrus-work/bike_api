@@ -1,6 +1,6 @@
-from internal.mysql_db import Base, SessionLocal
 from sqlalchemy import Column, Integer, Float, String
 
+from internal.mysql_db import Base, SessionLocal
 from internal.utils import exception_handler
 
 
@@ -17,6 +17,16 @@ class WorkoutSummary(Base):
     total_token = Column(Float)
     total_point = Column(Float)
     total_duration = Column(Integer)
+
+    def __repr__(self):
+        return (
+            f"WorkoutSummary("
+            f"owner_id={self.owner_id}, email={self.email}, total_token_status_0={self.total_token_status_0}, "
+            f"total_point_status_0={self.total_point_status_0}, total_duration_status_0={self.total_duration_status_0}, "
+            f"total_token_status_1={self.total_token_status_1}, total_point_status_1={self.total_point_status_1}, "
+            f"total_duration_status_1={self.total_duration_status_1}, total_token={self.total_token}, "
+            f"total_point={self.total_point}, total_duration={self.total_duration}"
+        )
 
 
 @exception_handler

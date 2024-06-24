@@ -97,7 +97,12 @@ def get_user_by_email(db: SessionLocal, email: str) -> User:
 
 @exception_handler
 def get_users_like_email(db: SessionLocal, email: str):
-    return db.query(User).filter(User.email.like(f"%{email}%")).all()
+    return db.query(User).filter(User.email.like(f"%{email}%"), User.status == 1).all()
+
+
+@exception_handler
+def get_count_users_like_email(db: SessionLocal, email: str):
+    return db.query(User).filter(User.email.like(f"%{email}%")).count()
 
 
 @exception_handler
@@ -109,9 +114,7 @@ def get_user_exist_by_email(db: SessionLocal, email: str):
     :param email: user email
     :return: bool
     """
-    return (
-        db.query(User).filter(User.email == email, User.email_verified == "Y").first()
-    )
+    return db.query(User).filter(User.email == email, User.status == 1).first()
 
 
 @exception_handler
@@ -125,7 +128,7 @@ def get_active_user_by_email(db: SessionLocal, email: str) -> User:
     """
     return (
         db.query(User)
-        .filter(User.email == email, User.status == 1, User.email_verified == "Y")
+        .filter(User.email == email, User.status == 1, User.status == 1)
         .first()
     )
 

@@ -112,9 +112,11 @@ class UserEmailRequest(BaseModel):
     """
 
     email: str
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
-        schema_extra = {"example": {"email": "test@test.com"}}
+        schema_extra = {"example": {"email": "test@test.com", "offset": 0, "limit": 50}}
 
 
 """

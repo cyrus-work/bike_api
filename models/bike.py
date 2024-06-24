@@ -98,6 +98,18 @@ def get_bike_by_bike_no_like(db: SessionLocal, bike_no: str) -> list[Bike]:
 
 
 @exception_handler
+def get_count_bike_by_bike_no_like(db: SessionLocal, bike_no: str) -> int:
+    """
+    Get bike count by bike_no like
+
+    :param db: database session
+    :param bike_no: bike_no value
+    :return: int
+    """
+    return db.query(Bike).filter(Bike.bike_no.like(f"%{bike_no}%")).count()
+
+
+@exception_handler
 def get_bikes_all(db: SessionLocal, offset: int = 0, limit: int = 50) -> list[Bike]:
     """
     Get all bikes

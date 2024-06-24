@@ -40,6 +40,7 @@ from models.bike import (
     get_bike_by_bike_no,
     get_bikes_count_all,
     get_bike_by_bike_no_like,
+    get_count_bike_by_bike_no_like,
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -115,11 +116,12 @@ async def post_bike_info_match_api(bike: BikeGetRequest, user=Depends(admin_requ
         serial = bike.serial
 
         db_bike = get_bike_by_bike_no_like(db, serial)
+        db_count = get_count_bike_by_bike_no_like(db, serial)
 
         logger.info(f"    post_bike_info_match_api db_bike: {db_bike}")
         if db_bike is None:
             db_bike = []
-        return db_bike
+        return {"count": db_count, "data": db_bike}
 
     finally:
         logger.info(f">>> post_bike_info_match_api end")
