@@ -110,6 +110,17 @@ class WorkoutGetMonthRequest(BaseModel):
         }
 
 
+class WorkoutGetMonthTestRequest(BaseModel):
+    email: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "test@exam.com"
+            }
+        }
+
+
 class WorkoutCreateMsg(BaseModel):
     workout_id: str
 

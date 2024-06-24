@@ -54,7 +54,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
             db.merge(item)
             db.flush()
 
-        txn.amount = sum_coin
+        txn.amount = min(sum_coin, 6)
         db.add(txn)
         db.commit()
         db.refresh(txn)
@@ -98,7 +98,7 @@ async def post_request_point_rewards_api(user: User = Depends(get_current_user))
             db.merge(item)
             db.flush()
 
-        txn.amount = sum_point
+        txn.amount = min(sum_point, 2000)
         db.add(txn)
         db.commit()
         db.refresh(txn)

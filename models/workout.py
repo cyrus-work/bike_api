@@ -8,6 +8,7 @@ from sqlalchemy import (
     Integer,
     DECIMAL,
     func,
+    case,
 )
 
 from internal.log import logger
@@ -233,30 +234,74 @@ def get_sum_of_workout_duration_not_calculated_by_user_id(
 def get_sum_of_workout_duration_not_calculated_point_by_user_id(
     db: SessionLocal, owner_id: str
 ) -> int:
-    return (
-        db.query(func.sum(DailyWorkout.duration))
-        .filter(
-            DailyWorkout.owner_id == owner_id,
-            DailyWorkout.status == 0,
-            DailyWorkout.ptype == 1,
-            DailyWorkout.transaction_id.is_(None),
+    """
+    사용자 id를 받아서 미정산된 토큰의 합계를 반환합니다.
+    하루의 총합이 2000을 넘지 않도록 제한합니다.
+    """
+    # 서브쿼리를 사용하여 created_at 날짜별로 token의 합계를 구함
+    daily_sum_query = (
+        db.query(
+            func.date(DailyWorkout.created_at).label("date"),
+            func.sum(DailyWorkout.point).label("daily_point_sum"),
         )
-        .scalar()
-    )
-
-
-@exception_handler
-def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) -> int:
-    return (
-        db.query(func.sum(DailyWorkout.token))
         .filter(
             DailyWorkout.owner_id == owner_id,
             DailyWorkout.status == 0,
             DailyWorkout.ptype == 0,
             DailyWorkout.transaction_id.is_(None),
         )
-        .scalar()
+        .group_by(func.date(DailyWorkout.created_at))
+    ).subquery()
+
+    # 각 날짜별 합계를 6으로 제한한 값을 구하는 쿼리
+    capped_daily_sum_query = db.query(
+        func.sum(
+            case(
+                [(daily_sum_query.c.daily_point_sum > 2000, 2000)],
+                else_=daily_sum_query.c.daily_point_sum,
+            )
+        ).label("capped_sum")
     )
+
+    # 쿼리 실행
+    result = db.execute(capped_daily_sum_query).scalar()
+    return result
+
+
+@exception_handler
+def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) -> int:
+    """
+    사용자 id를 받아서 미정산된 토큰의 합계를 반환합니다.
+    하루의 총합이 6을 넘지 않도록 제한합니다.
+    """
+    # 서브쿼리를 사용하여 created_at 날짜별로 token의 합계를 구함
+    daily_sum_query = (
+        db.query(
+            func.date(DailyWorkout.created_at).label("date"),
+            func.sum(DailyWorkout.token).label("daily_token_sum"),
+        )
+        .filter(
+            DailyWorkout.owner_id == owner_id,
+            DailyWorkout.status == 0,
+            DailyWorkout.ptype == 0,
+            DailyWorkout.transaction_id.is_(None),
+        )
+        .group_by(func.date(DailyWorkout.created_at))
+    ).subquery()
+
+    # 각 날짜별 합계를 6으로 제한한 값을 구하는 쿼리
+    capped_daily_sum_query = db.query(
+        func.sum(
+            case(
+                [(daily_sum_query.c.daily_token_sum > 6, 6)],
+                else_=daily_sum_query.c.daily_token_sum,
+            )
+        ).label("capped_sum")
+    )
+
+    # 쿼리 실행
+    result = db.execute(capped_daily_sum_query).scalar()
+    return result
 
 
 @exception_handler
@@ -365,8 +410,8 @@ def get_monthly_summary_by_user(
         summary = [
             {
                 "date": result.date,
-                "total_tokens": result.total_tokens,
-                "total_points": result.total_points,
+                "total_tokens": min(float(result.total_tokens), 6),
+                "total_points": min(float(result.total_points), 6),
                 "total_energy": result.total_energy,
             }
             for result in results
