@@ -333,7 +333,7 @@ def get_sum_of_not_calculated_point_by_user_id(db: SessionLocal, owner_id: str) 
 
 
 @exception_handler
-def get_workout_list_not_calculated_coin_by_user_id(
+def get_workout_list_not_calculated_token_by_user_id(
     db: SessionLocal, owner_id: str
 ) -> list[DailyWorkout]:
     return (

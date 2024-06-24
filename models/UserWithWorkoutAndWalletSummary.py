@@ -43,11 +43,13 @@ class UserWithWorkoutAndWalletSummary(Base):
             f"UserWithWorkoutAndWalletSummary(uid={self.uid}, type={self.type}, name={self.name}, email={self.email}, "
             f"email_verified={self.email_verified}, agreement1={self.agreement1}, agreement2={self.agreement2}, "
             f"agreement3={self.agreement3}, status={self.status}, level={self.level}, created_at={self.created_at}, "
-            f"updated_at={self.updated_at}, total_token_0={self.total_token_0}, total_point_0={self.total_point_0}, "
-            f"total_duration_0={self.total_duration_0}, total_token_1={self.total_token_1}, total_point_1={self.total_point_1}, "
-            f"total_duration_1={self.total_duration_1}, total_token={self.total_token}, total_point={self.total_point}, "
-            f"total_duration={self.total_duration}, wallet_id={self.wallet_id}, address={self.address}, "
-            f"wallet_enable={self.wallet_enable}, wallet_created_at={self.wallet_created_at}, wallet_updated_at={self.wallet_updated_at})"
+            f"updated_at={self.updated_at}, total_token_0={self.total_token_0}, "
+            f"total_point_0={self.total_point_0}, total_duration_0={self.total_duration_0}, "
+            f"total_token_1={self.total_token_1}, total_point_1={self.total_point_1}, "
+            f"total_duration_1={self.total_duration_1}, total_token={self.total_token}, "
+            f"total_point={self.total_point}, total_duration={self.total_duration}, "
+            f"wallet_id={self.wallet_id}, address={self.address}, wallet_enable={self.wallet_enable}, "
+            f"wallet_created_at={self.wallet_created_at}, wallet_updated_at={self.wallet_updated_at})"
         )
 
 
