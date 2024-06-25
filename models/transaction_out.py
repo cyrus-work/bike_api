@@ -109,7 +109,19 @@ def get_txn_out_by_status_not_clear(db):
 
 @exception_handler
 def get_txn_out_by_owner_id(db, owner_id, offset=0, limit=50) -> list:
-    return db.query(TransactionOut).filter_by(owner_id=owner_id).all()
+    return (
+        db.query(TransactionOut)
+        .filter_by(owner_id=owner_id)
+        .order_by(TransactionOut.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_count_txn_out_by_owner_id(db, owner_id):
+    return db.query(TransactionOut).filter_by(owner_id=owner_id).count()
 
 
 @exception_handler
@@ -138,6 +150,11 @@ def get_txns_all(db, offset=0, limit=50):
 
 
 @exception_handler
+def get_count_txns_all(db):
+    return db.query(TransactionOut).count()
+
+
+@exception_handler
 def get_txn_out_by_date(db, start_date, end_date, offset=0, limit=50):
     return (
         db.query(TransactionOut)
@@ -149,4 +166,44 @@ def get_txn_out_by_date(db, start_date, end_date, offset=0, limit=50):
         .offset(offset)
         .limit(limit)
         .all()
+    )
+
+
+@exception_handler
+def get_count_txn_out_by_date(db, start_date, end_date):
+    return (
+        db.query(TransactionOut)
+        .filter(
+            TransactionOut.operating_at >= start_date,
+            TransactionOut.operating_at < end_date,
+        )
+        .count()
+    )
+
+
+@exception_handler
+def get_txn_out_by_email_and_date(db, email, start_date, end_date, offset=0, limit=50):
+    return (
+        db.query(TransactionOut)
+        .filter(
+            TransactionOut.email == email,
+            TransactionOut.operating_at >= start_date,
+            TransactionOut.operating_at < end_date,
+        )
+        .order_by(TransactionOut.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_count_txn_out_by_date(db, start_date, end_date):
+    return (
+        db.query(TransactionOut)
+        .filter(
+            TransactionOut.operating_at >= start_date,
+            TransactionOut.operating_at < end_date,
+        )
+        .count()
     )

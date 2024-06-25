@@ -15,11 +15,20 @@ class TxnOutGetRequest(BaseModel):
 
 
 class TxnOutGetReq(BaseModel):
+    start_date: str
+    end_date: str
     offset: Optional[int] = 0
     limit: Optional[int] = 50
 
     class Config:
-        schema_extra = {"example": {"offset": 0, "limit": 50}}
+        schema_extra = {
+            "example": {
+                "start_date": "2021-01-01",
+                "end_date": "2021-12-31",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
 
 
 class TxnOutGetDateReq(BaseModel):
@@ -33,6 +42,38 @@ class TxnOutGetDateReq(BaseModel):
             "example": {
                 "start_date": "2021-01-01",
                 "end_date": "2021-12-31",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
+class TxnOutGetEmailDateReq(BaseModel):
+    email: str
+    start_date: str
+    end_date: str
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "test@test.com",
+                "start_date": "2021-01-01",
+                "end_date": "2021-12-31",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
+class TxnOutGetAllReq(BaseModel):
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
                 "offset": 0,
                 "limit": 50,
             }
