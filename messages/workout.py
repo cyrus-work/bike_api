@@ -173,6 +173,23 @@ class WorkoutGetUserRequest(BaseModel):
         }
 
 
+class WorkoutGetDateAdminRequest(BaseModel):
+    start_date: str
+    end_date: Optional[str] = None
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "start_date": "2021-07-01",
+                "end_date": "2021-07-01",
+                "offset": 0,
+                "limit": 50,
+            }
+        }
+
+
 class WorkoutGetSearchRequest(BaseModel):
     ptype: Optional[int] = None
     email: str

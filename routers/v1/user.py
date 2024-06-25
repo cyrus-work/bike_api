@@ -439,8 +439,9 @@ async def update_user_by_email_api(
             db_user.hashed_pwd = get_password_hash(req.password)
         db.merge(db_user)
         db.commit()
+        db.refresh(db_user)
 
-        logger.info(f"    update_user_by_email_api: {email} update success")
+        logger.info(f"    update_user_by_email_api user: {db_user}")
         return {"message": "update success"}
 
     finally:

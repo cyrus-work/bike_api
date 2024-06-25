@@ -101,21 +101,23 @@ async def post_bike_info_api(bike: BikeGetRequest, user=Depends(admin_required))
 
 
 @router.post("/info_match")
-async def post_bike_info_match_api(bike: BikeGetRequest, user=Depends(admin_required)):
+async def post_bike_info_match_api(req: BikeGetRequest, user=Depends(admin_required)):
     """
     Get bike info by search
 
-    :param bike:
+    :param req:
     :param user:
     :return:
     """
-    logger.info(f">>> post_bike_info_match_api start: {bike}")
+    logger.info(f">>> post_bike_info_match_api start: {req}")
 
     try:
         admin, db = user
-        serial = bike.serial
+        serial = req.serial
+        offset = req.offset
+        limit = req.limit
 
-        db_bike = get_bike_by_bike_no_like(db, serial)
+        db_bike = get_bike_by_bike_no_like(db, serial, offset, limit)
         db_count = get_count_bike_by_bike_no_like(db, serial)
 
         logger.info(f"    post_bike_info_match_api db_bike: {db_bike}")

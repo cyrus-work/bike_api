@@ -32,9 +32,11 @@ class BikeGetRequest(BaseModel):
     """
 
     serial: str
+    offset: Optional[int] = 0
+    limit: Optional[int] = 50
 
     class Config:
-        schema_extra = {"example": {"serial": "C1B000123Z"}}
+        schema_extra = {"example": {"serial": "C1B000123Z", "offset": 0, "limit": 50}}
 
 
 """

@@ -1,5 +1,5 @@
 {
-  "test_mode": true,
+  "test_mode": false,
   "scheduler": {
     "hour": "*/1",
     "minute": 0

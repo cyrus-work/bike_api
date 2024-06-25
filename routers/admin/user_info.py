@@ -8,6 +8,7 @@ from messages.user import (
     UserEmailRequest,
     UserSearchWalletRequest,
     UserListGetReq,
+    UserUpdateRequest,
 )
 from models.UserWithWorkoutAndWalletSummary import (
     get_user_with_workout_wallet_summary_like_email,
@@ -243,3 +244,45 @@ async def post_delete_user_by_email_api(
 
     finally:
         logger.info(f">>> post_delete_user_by_email_api end")
+
+
+@router.post("/update")
+async def post_update_user_by_email_api(
+    req: UserUpdateRequest, user=Depends(admin_required)
+):
+    """
+    사용자 정보 수정
+
+    :param req: UserEmailRequest 모델
+    :param user: admin_required
+    :return:
+    """
+    logger.info(f">>> post_update_user_by_email_api: {req}")
+
+    try:
+        admin, db = user
+
+        email = req.email
+        name = req.name
+        password = req.password
+        level = req.level
+
+        db_user = get_user_by_email(db, email)
+        if db_user is None:
+            raise UserNotExistsException
+
+        if name is not None:
+            db_user.name = name
+        if password is not None:
+            db_user.password = password
+        if level is not None:
+            db_user.level = level
+
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"    post_update_user_by_email_api: {db_user}")
+
+        return db_user
+
+    finally:
+        logger.info(f">>> post_update_user_by_email_api end")

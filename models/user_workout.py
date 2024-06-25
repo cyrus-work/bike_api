@@ -183,6 +183,35 @@ def get_count_user_workout_view_by_email_and_date_and_ptype(
 
 
 @exception_handler
+def get_user_workout_view_by_date(
+    db: SessionLocal, start_date: str, end_date: str, offset: int = 0, limit: int = 50
+):
+    return (
+        db.query(UserWorkoutView)
+        .filter(
+            UserWorkoutView.workout_date >= start_date,
+            UserWorkoutView.workout_date <= end_date,
+        )
+        .order_by(UserWorkoutView.workout_date.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+@exception_handler
+def get_count_user_workout_view_by_date(db: SessionLocal, start_date: str, end_date: str):
+    return (
+        db.query(UserWorkoutView)
+        .filter(
+            UserWorkoutView.workout_date >= start_date,
+            UserWorkoutView.workout_date <= end_date,
+        )
+        .count()
+    )
+
+
+@exception_handler
 def get_user_workout_view_by_email_and_date(
     db: SessionLocal,
     email: str,

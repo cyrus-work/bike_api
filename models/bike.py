@@ -86,15 +86,26 @@ def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
 
 
 @exception_handler
-def get_bike_by_bike_no_like(db: SessionLocal, bike_no: str) -> list[Bike]:
+def get_bike_by_bike_no_like(
+    db: SessionLocal, bike_no: str, offset: int = 0, limit: int = 50
+) -> list[Bike]:
     """
     Get bike by bike_no like
 
     :param db: database session
     :param bike_no: bike_no value
+    :param offset: offset value
+    :param limit: limit value
     :return: list[Bike]
     """
-    return db.query(Bike).filter(Bike.bike_no.like(f"%{bike_no}%")).all()
+    return (
+        db.query(Bike)
+        .filter(Bike.bike_no.like(f"%{bike_no}%"))
+        .order_by(Bike.bike_no)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @exception_handler
