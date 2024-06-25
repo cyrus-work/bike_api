@@ -73,7 +73,6 @@ class UserUpdateRequest(BaseModel):
     checker: str
     password: Optional[str] = None
     name: Optional[str] = None
-    level: Optional[int] = None
 
     class Config:
         schema_extra = {
@@ -82,7 +81,6 @@ class UserUpdateRequest(BaseModel):
                 "checker": "T1A1249c606548eee1b5e1736ccad255da646a09de4fdc971614e11c73683a63",
                 "email": "test@test.com",
                 "name": "test",
-                "level": 1,
             }
         }
 
@@ -98,6 +96,7 @@ class UserUpdateAdminReq(BaseModel):
     email: str
     name: Optional[str] = None
     password: Optional[str] = None
+    level: Optional[int] = None
 
     class Config:
         schema_extra = {
@@ -105,6 +104,7 @@ class UserUpdateAdminReq(BaseModel):
                 "email": "test@test.com",
                 "name": "test",
                 "password": "test",
+                "level": 1,
             }
         }
 

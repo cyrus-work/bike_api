@@ -441,7 +441,7 @@ async def update_user_by_email_api(
         db.commit()
         db.refresh(db_user)
 
-        logger.info(f"    update_user_by_email_api user: {db_user}")
+        logger.info(f"    update_user_by_email_api user")
         return {"message": "update success"}
 
     finally:

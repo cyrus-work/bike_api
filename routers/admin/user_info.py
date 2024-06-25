@@ -8,7 +8,7 @@ from messages.user import (
     UserEmailRequest,
     UserSearchWalletRequest,
     UserListGetReq,
-    UserUpdateRequest,
+    UserUpdateAdminReq,
 )
 from models.UserWithWorkoutAndWalletSummary import (
     get_user_with_workout_wallet_summary_like_email,
@@ -248,7 +248,7 @@ async def post_delete_user_by_email_api(
 
 @router.post("/update")
 async def post_update_user_by_email_api(
-    req: UserUpdateRequest, user=Depends(admin_required)
+    req: UserUpdateAdminReq, user=Depends(admin_required)
 ):
     """
     사용자 정보 수정
