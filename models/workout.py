@@ -274,6 +274,7 @@ def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) 
     사용자 id를 받아서 미정산된 토큰의 합계를 반환합니다.
     하루의 총합이 6을 넘지 않도록 제한합니다.
     """
+    logger.info(f">>> get_sum_of_not_calculated_token_by_user_id: {owner_id}")
     # 서브쿼리를 사용하여 created_at 날짜별로 token의 합계를 구함
     daily_sum_query = (
         db.query(
@@ -288,6 +289,8 @@ def get_sum_of_not_calculated_token_by_user_id(db: SessionLocal, owner_id: str) 
         )
         .group_by(func.date(DailyWorkout.created_at))
     ).subquery()
+
+    logger.info(f">>> daily_sum_query: {daily_sum_query.c.daily_token_sum}")
 
     # 각 날짜별 합계를 6으로 제한한 값을 구하는 쿼리
     capped_daily_sum_query = db.query(

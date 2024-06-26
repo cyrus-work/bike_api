@@ -45,6 +45,8 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
         if len(db_workouts) == 0:
             raise RewardWorkoutNotExistsException
 
+        db_amount = get_sum_of_not_calculated_token_by_user_id(db, db_user.uid)
+
         txn = make_transaction_out(db_wallet.address, db_user.uid)
 
         for item in db_workouts:
@@ -54,7 +56,8 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
             db.merge(item)
             db.flush()
 
-        txn.amount = get_sum_of_not_calculated_token_by_user_id(db, db_user.uid)
+        logger.info(f"    post_request_rewards_api txn.amount: {db_amount}")
+        txn.amount = db_amount
         db.add(txn)
         db.commit()
         db.refresh(txn)
