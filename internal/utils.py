@@ -48,7 +48,7 @@ def exception_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            logger.info(f"Calling function: {func.__name__}")
+            logger.debug(f"Calling function: {func.__name__}")
             return func(*args, **kwargs)
 
         except SQLAlchemyError as _:

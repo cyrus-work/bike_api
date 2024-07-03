@@ -81,7 +81,7 @@ def make_transaction_out(
     """
 
     tid = generate_hash()
-    operating_fee = amount * 0.2
+    operating_fee = amount * 0.12
     return TransactionOut(
         tid=tid,
         owner_id=owner_id,

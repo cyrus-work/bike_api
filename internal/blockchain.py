@@ -58,12 +58,16 @@ def act_transfer(
     if isinstance(amount, Decimal):
         amount = int(amount)
 
+    # 현재 가스 가격 가져오기
+    current_gas_price = web3.eth.gas_price
+    logger.info(f"Current gas price: {web3.from_wei(current_gas_price, 'gwei')} Gwei")
+
     token_contract = web3.eth.contract(address=token_address, abi=token_abi)
     tx = token_contract.functions.transfer(to_address, amount).build_transaction(
         {
             "chainId": chain_id,
-            "gas": 200_000,
-            "gasPrice": web3.to_wei("10", "gwei"),
+            "gas": 2_000_000,
+            "gasPrice": current_gas_price,
             "nonce": nonce,
         }
     )
@@ -97,6 +101,11 @@ def lock_transfer(
     """
     logger.info(f"from_address: {from_address}")
     logger.info(f"nonce: {nonce}")
+
+    # 현재 가스 가격 가져오기
+    current_gas_price = web3.eth.gas_price
+    logger.info(f"Current gas price: {web3.from_wei(current_gas_price, 'gwei')} Gwei")
+
     token_contract = web3.eth.contract(address=token_address, abi=token_abi)
     tx = token_contract.functions.transferWithLock(
         to_address, amount, lock_time
@@ -104,7 +113,7 @@ def lock_transfer(
         {
             "chainId": chain_id,
             "gas": 200_000,
-            "gasPrice": web3.to_wei("10", "gwei"),
+            "gasPrice": current_gas_price,
             "nonce": nonce,
         }
     )

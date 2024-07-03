@@ -8,6 +8,7 @@ from filelock import FileLock
 from jwt import ExpiredSignatureError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import UnmappedInstanceError
+from starlette.requests import Request
 
 from internal.app_config import setting
 from internal.exceptions import exception_handlers
@@ -34,8 +35,11 @@ from routers.v1.workout import router as v1_workout_router
 
 app = FastAPI()
 
-hour = setting["scheduler"]["hour"]
-minute = setting["scheduler"]["minute"]
+trans_hour = setting["transfer_scheduler"]["hour"]
+trans_min = setting["transfer_scheduler"]["minute"]
+checker_hour = setting["check_scheduler"]["hour"]
+checker_min = setting["check_scheduler"]["minute"]
+
 lock_file_path = "/tmp/scheduler.lock"
 scheduler = BackgroundScheduler()
 
@@ -76,6 +80,14 @@ app.include_router(admin_bike_router, prefix="/admin/bike", tags=["admin"])
 app.include_router(admin_wallet_router, prefix="/admin/wallet", tags=["admin"])
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    response = await call_next(request)
+    logger.info(f"Response: {response.status_code}")
+    return response
+
+
 def get_registered_jobs():
     jobs = scheduler.get_jobs()
     return jobs
@@ -109,16 +121,16 @@ def start_scheduler():
         scheduler.add_job(
             schedule_token_transfer,
             "cron",
-            hour=hour,
-            minute=minute,
+            hour=trans_hour,
+            minute=trans_min,
             id=f"scheduled_transfer_{current_process().name}",
         )
 
         scheduler.add_job(
             schedule_token_checker,
             "cron",
-            hour="*/1",
-            minute="*/30",
+            hour=checker_hour,
+            minute=checker_min,
             id=f"scheduled_checker_{current_process().name}",
         )
         logger.info(f"Current registered jobs: {get_registered_jobs()}")
@@ -129,5 +141,10 @@ def start_scheduler():
         lock.release()
 
 
+# 다수의 프로세스인 경우
 if current_process().name == "SpawnProcess-1":
+    start_scheduler()
+
+# 하나의 프로세스인 경우
+if current_process().name == "MainProcess":
     start_scheduler()

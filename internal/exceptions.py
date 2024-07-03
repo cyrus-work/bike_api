@@ -161,3 +161,10 @@ class LastWorkoutActiveNotExistException(Exception):
     status_code = 410
     error_code = 122
     message = "Last workout active not exists"
+
+
+@register_exception
+class RewardNotEnoughException(Exception):
+    status_code = 410
+    error_code = 123
+    message = "Reward not enough"

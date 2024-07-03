@@ -1,8 +1,12 @@
 {
   "test_mode": false,
-  "scheduler": {
+  "transfer_scheduler": {
     "hour": "*/1",
     "minute": 0
+  },
+  "check_scheduler": {
+    "hour": "*/1",
+    "minute": "*/30"
   },
   "publish_delay": 1
 }
