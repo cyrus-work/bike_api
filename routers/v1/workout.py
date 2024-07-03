@@ -24,7 +24,7 @@ from messages.workout import (
 )
 from models.bike import get_bike_by_bike_no
 from models.last_workout import (
-    get_last_workout_active_by_owner_id,
+    get_last_workout_by_owner_id,
 )
 from models.user import User
 from models.workout import (
@@ -110,7 +110,7 @@ async def post_workout_keep_api(
 
         db_user, db = user
 
-        db_last_workout = get_last_workout_active_by_owner_id(db, db_user.uid)
+        db_last_workout = get_last_workout_by_owner_id(db, db_user.uid)
         if db_last_workout is None:
             raise LastWorkoutNotExistsException
 

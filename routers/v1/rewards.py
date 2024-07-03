@@ -58,6 +58,7 @@ async def post_request_rewards_api(user: User = Depends(get_current_user)):
 
         logger.info(f"    post_request_rewards_api txn.amount: {db_amount}")
         txn.amount = db_amount
+        txn.operating_fee = db_amount * 0.12
         db.add(txn)
         db.commit()
         db.refresh(txn)
