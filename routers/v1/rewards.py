@@ -194,6 +194,9 @@ async def post_txn_list_by_owner_id_and_coint_api(
         db_user, db = user
 
         start_date, end_date = make_start_end_data_month(req.month)
+        logger.info(
+            f"    post_txn_list_by_owner_id_and_coint_api start_date: {start_date}, end_date: {end_date}"
+        )
 
         db_txns = get_txns_by_owner_id(db, db_user.uid, start_date, end_date)
 

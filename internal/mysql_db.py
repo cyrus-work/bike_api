@@ -3,7 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from internal.app_config import database
-from internal.log import logger
 
 DB_USER = database["user"]
 DB_PASSWORD = database["password"]
@@ -21,9 +20,9 @@ Base_ex = declarative_base()
 
 def get_db():
     db = SessionLocal()
-    logger.debug(f"=== get_db: db = SessionLocal()")
+    # logger.debug(f"=== get_db: db = SessionLocal()")
     try:
         yield db
     finally:
-        logger.debug(f"=== get_db: db.close()")
+        # logger.debug(f"=== get_db: db.close()")
         db.close()

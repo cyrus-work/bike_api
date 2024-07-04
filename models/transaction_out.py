@@ -130,12 +130,18 @@ def get_txn_out_by_wallet(db, wallet):
 
 
 @exception_handler
-def get_txns_by_owner_id(db, owner_id, start_date, end_date):
-    db.query(TransactionOut).filter(
-        TransactionOut.owner_id == owner_id,
-        TransactionOut.operating_at >= start_date,
-        TransactionOut.operating_at < end_date,
-    ).all()
+def get_txns_by_owner_id(
+    db, owner_id, start_date: datetime.date, end_date: datetime.date
+):
+    return (
+        db.query(TransactionOut)
+        .filter(
+            TransactionOut.owner_id == owner_id,
+            TransactionOut.operating_at >= start_date,
+            TransactionOut.operating_at < end_date,
+        )
+        .all()
+    )
 
 
 @exception_handler
