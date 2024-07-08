@@ -82,7 +82,10 @@ app.include_router(admin_wallet_router, prefix="/admin/wallet", tags=["admin"])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    logger.info(f"Request: {request.method} {request.url}")
+    body = await request.body()
+    logger.info(
+        f"Request: {request.method} {request.url}, Body: {body.decode('utf-8')}"
+    )
     response = await call_next(request)
     logger.info(f"Response: {response.status_code}")
     return response
