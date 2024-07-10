@@ -82,12 +82,21 @@ app.include_router(admin_wallet_router, prefix="/admin/wallet", tags=["admin"])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    body = await request.body()
-    logger.info(
-        f"Request: {request.method} {request.url}, Body: {body.decode('utf-8')}"
-    )
+    logger.debug("=== Request received")
+    try:
+        if "multipart/form-data" in request.headers.get("Content-Type", ""):
+            logger.debug("   File upload detected, body logging skipped")
+            body_str = "File upload detected, body logging skipped"
+        else:
+            logger.debug("   Decoding body")
+            body = await request.body()
+            body_str = body.decode("utf-8")
+    except Exception as e:
+        body_str = f"Error decoding body: {e}"
+
+    logger.debug(f"    Request: {request.method} {request.url}, Body: {body_str}")
     response = await call_next(request)
-    logger.info(f"Response: {response.status_code}")
+    logger.debug(f"=== Response: {response.status_code}")
     return response
 
 
