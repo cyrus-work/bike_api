@@ -1,5 +1,5 @@
 {
-  "test_mode": false,
+  "test_mode": true,
   "transfer_scheduler": {
     "hour": "*/1",
     "minute": 0

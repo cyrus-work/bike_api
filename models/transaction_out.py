@@ -7,9 +7,10 @@ from sqlalchemy import (
     DateTime,
     SmallInteger,
     CHAR,
+    exists,
 )
 
-from internal.mysql_db import Base
+from internal.mysql_db import Base, SessionLocal
 from internal.utils import generate_hash, exception_handler
 
 
@@ -47,6 +48,7 @@ class TransactionOut(Base):
     wallet = Column(String(42, collation="latin1_swedish_ci"), nullable=False)
     amount = Column(DECIMAL(36, 18), nullable=False, default=0)
     operating_fee = Column(DECIMAL(36, 18), nullable=False, default=0)
+    operating_tx = Column(String(64, collation="latin1_swedish_ci"), nullable=True)
     txn_hash = Column(CHAR(66, collation="latin1_swedish_ci"))
     msg = Column(String(255), nullable=True, default=None)
     status = Column(SmallInteger, nullable=False, default=0)
@@ -59,11 +61,23 @@ class TransactionOut(Base):
     def __repr__(self):
         return (
             f"<TransactionOut(tid={self.tid}, owner_id={self.owner_id}, wallet={self.wallet}, "
-            f"amount={self.amount}, operating_fee={self.operating_fee}, txn_hash={self.txn_hash}, "
-            f"msg={self.msg}, status={self.status}, request_at={self.request_at}, "
+            f"amount={self.amount}, operating_fee={self.operating_fee}, operating_tx={self.operating_tx}, "
+            f"txn_hash={self.txn_hash}, msg={self.msg}, status={self.status}, request_at={self.request_at}, "
             f"operating_at={self.operating_at}, result_at={self.result_at}, "
             f"created_at={self.created_at}, updated_at={self.updated_at})>"
         )
+
+
+def is_tid_duplicate(tid: str) -> bool:
+    """
+    Check if oid is duplicate
+
+    :param tid: tid value
+    :return: bool
+        True if duplicate, False if not duplicate
+    """
+    with SessionLocal() as db:
+        return db.query(exists().where(TransactionOut.tid == tid)).scalar()
 
 
 def make_transaction_out(
@@ -80,7 +94,12 @@ def make_transaction_out(
     :return: TransactionOut
     """
 
-    tid = generate_hash()
+    while True:
+        tid = generate_hash()
+        # tid가 중복되지 않는지 확인
+        if not is_oid_duplicate(tid):
+            break
+
     operating_fee = amount * 0.12
     return TransactionOut(
         tid=tid,
