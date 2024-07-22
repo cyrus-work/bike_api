@@ -38,7 +38,7 @@ class UserWorkoutView(Base):
 
 @exception_handler
 def get_user_workout_view(db: SessionLocal, offset: int = 0, limit: int = 50):
-    return db.query(UserWorkoutView).offset(offset).limit(limit).all()
+    return db.query(UserWorkoutView).order_by(UserWorkoutView.workout_date.desc()).offset(offset).limit(limit).all()
 
 
 @exception_handler
