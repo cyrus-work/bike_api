@@ -15,13 +15,16 @@ class Bike(Base):
     bike_no = Column(String(12), index=True)
     cpu_version = Column(String(10))
     board_version = Column(String(10))
+    description = Column(String(500))
+    status = Column(String(1), default=1)
     create_at = Column(DateTime, default=datetime.now)
     update_at = Column(DateTime, onupdate=datetime.now)
 
     def __repr__(self):
         return (
             f"Bike(bid={self.bid}, bike_no={self.bike_no}, cpu_version={self.cpu_version}, "
-            f"board_version={self.board_version}, create_at={self.create_at}, update_at={self.update_at})"
+            f"board_version={self.board_version}, description={self.description}, "
+            f"status={self.status}, create_at={self.create_at}, update_at={self.update_at})"
         )
 
 
@@ -86,6 +89,18 @@ def get_bike_by_bike_no(db: SessionLocal, bike_no: str) -> Bike:
 
 
 @exception_handler
+def get_bike_by_bike_no_with_status(db: SessionLocal, bike_no: str) -> Bike:
+    """
+    Get bike by bike_no
+
+    :param db: database session
+    :param bike_no: bike_no value
+    :return: Bike
+    """
+    return db.query(Bike).filter(Bike.bike_no == bike_no, Bike.status == 1).first()
+
+
+@exception_handler
 def get_bike_by_bike_no_like(
     db: SessionLocal, bike_no: str, offset: int = 0, limit: int = 50
 ) -> list[Bike]:
@@ -142,3 +157,33 @@ def get_bikes_count_all(db: SessionLocal) -> int:
     :return: int
     """
     return db.query(Bike).count()
+
+
+@exception_handler
+def get_bikes_by_status(
+    db: SessionLocal, status: int, offset: int = 0, limit: int = 50
+) -> list[Bike]:
+    """
+    Get bikes by status
+
+    :param db: database session
+    :param status: status value
+    :param offset: offset value
+    :param limit: limit value
+    :return: list[Bike]
+    """
+    return (
+        db.query(Bike).filter(Bike.status == status).offset(offset).limit(limit).all()
+    )
+
+
+@exception_handler
+def get_count_bikes_by_status(db: SessionLocal, status: int) -> int:
+    """
+    Get bikes count by status
+
+    :param db: database session
+    :param status: status value
+    :return: int
+    """
+    return db.query(Bike).filter(Bike.status == status).count()

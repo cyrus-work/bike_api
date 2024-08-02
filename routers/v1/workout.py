@@ -22,7 +22,7 @@ from messages.workout import (
     WorkoutWidGetRequest,
     WorkoutGetMonthRequest,
 )
-from models.bike import get_bike_by_bike_no
+from models.bike import get_bike_by_bike_no, get_bike_by_bike_no_with_status
 from models.last_workout import (
     get_last_workout_by_owner_id,
 )
@@ -65,7 +65,7 @@ async def post_workout_create_api(
             raise UserNotExistsException
 
         # bike_serial로 bike 정보를 가져온다.
-        db_bike = get_bike_by_bike_no(db, bike_serial)
+        db_bike = get_bike_by_bike_no_with_status(db, bike_serial)
         if db_bike is None:
             raise BikeNotExistsException
 
@@ -122,7 +122,7 @@ async def post_workout_keep_api(
         if db_user.uid != db_last_workout.owner_id:
             raise LastWorkoutOwnerNotMatchException
 
-        db_bike = get_bike_by_bike_no(db, bike_serial)
+        db_bike = get_bike_by_bike_no_with_status(db, bike_serial)
 
         if db_last_workout.bid != db_bike.bid:
             raise BikeIdNotMatchException

@@ -1,5 +1,5 @@
 import traceback
-from datetime import timedelta
+from datetime import timedelta, datetime
 from io import BytesIO
 
 import pandas as pd
@@ -41,6 +41,7 @@ from models.bike import (
     get_bikes_count_all,
     get_bike_by_bike_no_like,
     get_count_bike_by_bike_no_like,
+    get_bike_by_bike_no_with_status,
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -183,6 +184,35 @@ async def post_delete_bike_api(bike: BikeGetRequest, user=Depends(admin_required
 
     finally:
         logger.info(f">>> post_delete_bike_api end")
+
+
+@router.post("/disable")
+async def post_disable_bike_api(bike: BikeGetRequest, user=Depends(admin_required)):
+    """
+    Disable bike
+
+    :param bike:
+    :param user:
+    :return:
+    """
+    logger.info(f">>> post_disable_bike_api start: {bike}")
+
+    try:
+        admin, db = user
+        serial = bike.serial
+
+        db_bike = get_bike_by_bike_no_with_status(db, serial)
+        if db_bike is None:
+            raise BikeNotExistsException
+
+        db_bike.status = 0
+        db_bike.update_at = datetime.now()
+        db.commit()
+        logger.info(f"    post_disable_bike_api: {serial} disable success")
+        return BikeDeleteMsg(code=200, content="success", serial=serial)
+
+    finally:
+        logger.info(f">>> post_disable_bike_api end")
 
 
 """
